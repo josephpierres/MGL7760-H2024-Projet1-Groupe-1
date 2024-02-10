@@ -6,6 +6,9 @@ flask/.venv/
 # C extensions
 *.so
 
+mysql/data/
+redis/data/
+
 # Distribution / packaging
 .Python
 build/

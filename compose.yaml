@@ -1,39 +1,150 @@
-version: '1.0'
-
+version: "3"
 services:
-   
-  # WSIG et Flask sur python avec WSGI
-  wsgi:
-    build: ./wsgi
-    container_name: wsgi
-    restart: always
-    # flask requires SIGINT to stop gracefully
-    # (default stop signal from Compose is SIGTERM)
-    stop_signal: SIGINT
-    environment:
-      - APP_NAME=Bibliotheque
-    working_dir: /app
-    volumes:
-     - './wsgi:/app'
-    command: [ "uwsgi", "--ini", "app.ini" ]
+    # serveur de base de donnees Mysql
+  mysql:
+    image: mysql:8.0.22   
+    container_name: mysql    
+    restart: always   
+    ports:
+      - '3306:3306'
     expose:
-      - 8080        
+      - 3306
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: gestion_bibliotheque
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: mypassword
+    volumes:
+      - ./mysql/db.sql/:/docker-entrypoint-initdb.d/db.sql
+      - ./mysql/data:/var/lib/mysql   # aucun donnees, seul les donnees que mysql generent
+    #command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
+  
+    healthcheck:
+      test: ["CMD", "mysql", "-h", "localhost", "-u", "root", "-ppassword", "-e", "SELECT 1"]
+      timeout: 20s
+      retries: 10
     networks:
-      - 'bibliotheque'
+      - back_network 
 
+    # serveur de cache Regis
+  redis:
+    container_name: redis
+    image: redis:latest    
+    ports:
+      - '6378:6379'
+    volumes:
+      - ./redis/data:/data
+    networks:
+      - back_network
+  
+    # Flask sur python avec WSGI - 1e app serveur
+  
+  wsgi0:
+    build:
+      context: ./wsgi
+      dockerfile: dockerfile-0    
+    container_name: wsgi0
+    restart: always
+    volumes:
+      - ./wsgi:/app
+    working_dir: /app  
+    environment:
+      MYSQL_PORT: 3306
+      APP_NAME: Bibliotheque 
+      MYSQL_HOST: mysql
+      REDIS_HOST: redis
+      REDIS_PORT: 6379      
+      SQLALCHEMY_DATABASE_URI: "mysql+pymysql://root:password@mysql/gestion_bibliotheque"
+      expose: 8080
+      # command: sh -c "python3 manage.py"      
+    depends_on:      
+      mysql:
+        condition: service_healthy
+    networks:
+      - front_network
+      - back_network
+
+    # Flask sur python avec WSGI - 2e app serveur
+  wsgi1:
+    build:
+      context: ./wsgi
+      dockerfile: dockerfile-1  
+    container_name: wsgi1
+    restart: always
+    volumes:
+      - ./wsgi:/app
+    working_dir: /app  
+    environment:
+      MYSQL_PORT: 3306
+      APP_NAME: Bibliotheque 
+      MYSQL_HOST: mysql
+      REDIS_HOST: redis
+      REDIS_PORT: 6379      
+      SQLALCHEMY_DATABASE_URI: "mysql+pymysql://root:password@mysql/gestion_bibliotheque"
+      expose: 8081
+      # command: sh -c "python3 manage.py"      
+    depends_on:      
+      mysql:
+        condition: service_healthy
+    networks:
+      - front_network
+      - back_network
+
+    # Flask sur python avec WSGI - 3e app serveur
+  wsgi2:
+    build:
+      context: ./wsgi
+      dockerfile: dockerfile-2  
+    container_name: wsgi2
+    restart: always
+    volumes:
+      - ./wsgi:/app
+    working_dir: /app  
+    environment:
+      MYSQL_PORT: 3306
+      APP_NAME: Bibliotheque 
+      MYSQL_HOST: mysql
+      REDIS_HOST: redis
+      REDIS_PORT: 6379      
+      SQLALCHEMY_DATABASE_URI: "mysql+pymysql://root:password@mysql/gestion_bibliotheque"
+      expose: 8082
+      # command: sh -c "python3 manage.py"      
+    depends_on:      
+      mysql:
+        condition: service_healthy
+    networks:
+      - front_network
+      - back_network
+
+    # le repatiteur de charge et serveur web - Nginx  
   nginx:
     build: ./nginx
     container_name: nginx  
     restart: always
     volumes:
       - './nginx/www:/var/www/html'    # si toutefois j'ai des statics files
+    #  - './nginx/log:/var/log/nginx/'
     ports:
       - '8000:80' # nginx utilise le port 80
     depends_on:
-      - wsgi
+    - mysql        
+    - wsgi0        
+    - wsgi1        
+    - wsgi2
     networks:
-      - 'bibliotheque'  
+      - front_network
+            
+      
 networks:
-  bibliotheque:
-    driver: bridge  
+  front_network:
+    driver: bridge
+  back_network:
+    driver: bridge      
+   
+volumes:
+  mysql:
+    driver: local    
 
+
+    
+    
