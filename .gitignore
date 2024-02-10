@@ -7,7 +7,7 @@ flask/.venv/
 *.so
 
 mysql/data/
-redis/data/
+redis/data/*
 
 # Distribution / packaging
 .Python
