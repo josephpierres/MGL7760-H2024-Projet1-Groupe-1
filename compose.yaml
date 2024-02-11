@@ -1,4 +1,4 @@
-version: "3"
+version: "5"
 services:
     # serveur de base de donnees Mysql
   mysql:
@@ -118,12 +118,13 @@ services:
 
     # le repatiteur de charge et serveur web - Nginx  
   nginx:
-    build: ./nginx
+    image: nginx:latest
     container_name: nginx  
     restart: always
-    volumes:
+    volumes: 
+      - './nginx/configs/:/etc/nginx/conf.d/'
       - './nginx/www:/var/www/html'    # si toutefois j'ai des statics files
-    #  - './nginx/log:/var/log/nginx/'
+      - './nginx/log:/var/log/nginx/'
     ports:
       - '8000:80' # nginx utilise le port 80
     depends_on:

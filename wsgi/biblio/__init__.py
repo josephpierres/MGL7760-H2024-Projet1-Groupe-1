@@ -2,17 +2,12 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
 from flask_redis import FlaskRedis
-
-from flask_wtf.csrf import CSRFProtect
+from flask_wtf.csrf import CSRFProtect 
 from config import ProductionConfig
 
 app = Flask(__name__)
 app.config.from_object(ProductionConfig)
 csrf = CSRFProtect(app)
-# csrf.init_app(app)
-# Configuration de la base de données
-#db.init_app(app)
-#app.config.from_object('config')
 db = SQLAlchemy(app)
 redis_client = FlaskRedis(app)
 

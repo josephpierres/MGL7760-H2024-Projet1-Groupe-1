@@ -1,6 +1,6 @@
 # pour ajouter les donnees
 """ 
-python3 migration.py
+python3 dbMigration.py
 # pour visualiser
 """""
 docker compose run mysql  mysql -h mysql -u root -ppassword
