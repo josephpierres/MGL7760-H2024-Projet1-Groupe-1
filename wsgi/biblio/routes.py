@@ -1,5 +1,5 @@
 from biblio.utilities import AuthorSearchForm, CategoryForm, TitleSearchForm
-from . import app, redis_client
+from . import app, redis_client, cache
 from flask import render_template, request, jsonify, session
 from flask_wtf import csrf, Form
 from biblio.models import Auteur, Categorie, Livre
@@ -14,11 +14,8 @@ import json
 @app.route('/')
 def index():    
     current_time = datetime.now().strftime("%d-%m-%Y")
-
     redis_client.set('flask_key', current_time)
-
     value = redis_client.get('flask_key').decode('utf-8')
-
     return render_template('index.html', date_du_jour = value)
 
 # flask health check
@@ -56,7 +53,7 @@ def make_cache_key(*args, **kwargs):
 
 # Afficher la liste de tous les livres avec des informations sur le livre, ses catégories, le(s) auteur(s) et l'éditeur
 @app.route('/getAllBooks', methods=['GET'])
-
+#@cache.cached(timeout=300, key_prefix=make_cache_key)
 def get_all_books():
     livres = Livre.query.all()
     livres_list = [livre_to_dict(livre) for livre in livres]    
@@ -69,6 +66,7 @@ def get_all_books():
 
 # Route pour afficher le formulaire de sélection de catégorie
 @app.route('/getBooksByCategory', methods=['GET', 'POST'])
+#@cache.cached(timeout=300, key_prefix=make_cache_key)
 def get_books_by_category():
     form = CategoryForm()
     
@@ -83,9 +81,7 @@ def get_books_by_category():
         
         # Récupérer les livres de la catégorie sélectionnée
         books = Livre.query.join(Livre.categories).filter(Categorie.id == selected_category_id).all()
-        #category = request.args.get('category')
-        #books = Livre.query.filter(Livre.categories.any(nom=category)).all()
-        books_list = []
+        
         books_list = [livre_to_dict(book) for book in books]
         return render_template('books_by_category.html', title='Livres par Catégorie', form=form, data={'livres': books_list})
 
@@ -95,7 +91,9 @@ def get_books_by_category():
 
 # API pour afficher un livre en particulier avec tous les détails
 @app.route('/getBookById/<int:book_id>', methods=['GET'])
+#@cache.cached(timeout=300, key_prefix=make_cache_key)
 def get_book_by_id(book_id):
+   
     livre = Livre.query.get(book_id)
     if livre:
         livre_dict = livre_to_dict(livre)
@@ -105,7 +103,7 @@ def get_book_by_id(book_id):
 
 # Route pour rechercher des livres par titre
 @app.route('/getBookByTitle', methods=['GET', 'POST'])
-
+#@cache.cached(timeout=300, key_prefix=make_cache_key)
 def get_books_by_title():
     form = TitleSearchForm()
    
@@ -123,6 +121,7 @@ def get_books_by_title():
 
 # Route pour rechercher des livres par auteur
 @app.route('/getBookByAuthor', methods=['GET', 'POST'])
+#@cache.cached(timeout=300, key_prefix=make_cache_key)
 def get_books_by_author():
     form = AuthorSearchForm()
     

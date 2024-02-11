@@ -16,7 +16,7 @@ services:
       MYSQL_PASSWORD: mypassword
     volumes:
       - ./mysql/db.sql/:/docker-entrypoint-initdb.d/db.sql
-      - ./mysql/data:/var/lib/mysql   # aucun donnees, seul les donnees que mysql generent
+      - ./mysql/data:/var/lib/mysql   # les donnees que mysql generent
     #command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
   
     healthcheck:
@@ -54,7 +54,7 @@ services:
       MYSQL_HOST: mysql
       REDIS_HOST: redis
       REDIS_PORT: 6379      
-      SQLALCHEMY_DATABASE_URI: "mysql+pymysql://root:password@mysql/gestion_bibliotheque"
+      #SQLALCHEMY_DATABASE_URI: "mysql+pymysql://root:password@mysql/gestion_bibliotheque"
       expose: 8080
       # command: sh -c "python3 manage.py"      
     depends_on:      
@@ -80,7 +80,7 @@ services:
       MYSQL_HOST: mysql
       REDIS_HOST: redis
       REDIS_PORT: 6379      
-      SQLALCHEMY_DATABASE_URI: "mysql+pymysql://root:password@mysql/gestion_bibliotheque"
+      #SQLALCHEMY_DATABASE_URI: "mysql+pymysql://root:password@mysql/gestion_bibliotheque"
       expose: 8081
       # command: sh -c "python3 manage.py"      
     depends_on:      
@@ -106,7 +106,7 @@ services:
       MYSQL_HOST: mysql
       REDIS_HOST: redis
       REDIS_PORT: 6379      
-      SQLALCHEMY_DATABASE_URI: "mysql+pymysql://root:password@mysql/gestion_bibliotheque"
+      #SQLALCHEMY_DATABASE_URI: "mysql+pymysql://root:password@mysql/gestion_bibliotheque"
       expose: 8082
       # command: sh -c "python3 manage.py"      
     depends_on:      

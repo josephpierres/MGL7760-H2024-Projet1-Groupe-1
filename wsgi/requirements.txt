@@ -10,6 +10,7 @@ cryptography==42.0.2
 dominate==2.9.1
 Flask==3.0.2
 Flask-Bootstrap==3.3.7.1
+flask_caching
 Flask-Login==0.6.3
 Flask-Mail==0.9.1
 Flask-Migrate==4.0.5

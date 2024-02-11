@@ -9,7 +9,7 @@ class DefaultConfig(object):
     WTF_CSRF_SECRET_KEY = SECRET_KEY
     #SERVER_NAME = 'localhost:8000'
     WTF_CSRF_ENABLED = False
-
+    FLASK_SERVER_PORT = 5000
 
 class ProductionConfig(DefaultConfig):
     DEBUG = False

@@ -9,7 +9,7 @@ WORKDIR /app
 # copier les conteuns du repertoire courrant dans le repertoire /app du conteneur
 ADD ./requirements.txt /app
 RUN apt-get update
-RUN apt-get install -y git
+#RUN apt-get install -y git
 
 RUN apt-get install -y gcc python3-dev
 RUN apt-get install -y libxml2-dev libxslt1-dev build-essential python3-lxml zlib1g-dev
