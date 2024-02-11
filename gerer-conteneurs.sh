@@ -91,6 +91,12 @@ import_books() {
     docker-compose start flask
 }
 
+# Importation de nouveaux livres
+import_books() {
+CSV_FILE="nouveaux_livres.csv"
+docker exec -i python_flask_container python3 import_books.py "$CSV_FILE"
+}
+
 # Fonction pour démarrer les conteneurs
 start_containers() {
     docker-compose start

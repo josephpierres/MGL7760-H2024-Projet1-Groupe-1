@@ -23,7 +23,7 @@ MYSQL_CMD = f"docker exec -i mysql mysql -h{MYSQL_HOST} -P{MYSQL_PORT} -u{MYSQL_
 print(f"Inserting data into Editeur, Categorie, and Auteur tables from {CSV_FILE}")
 
 with open(CSV_FILE, "r", newline='', encoding='utf-8') as csvfile:
-    
+    #reader = csv.DictReader(csvfile)
     reader = csv.DictReader(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL, skipinitialspace=True)
     next(reader)  # Skip header row
 
