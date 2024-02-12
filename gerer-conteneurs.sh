@@ -2,7 +2,7 @@
 
 # Fonction pour afficher l'utilisation correcte
 usage() {
-    echo "Utilisation : $0 [create|import|start|stop|destroy]"
+    echo "Utilisation : $0 [install|create|import|start|stop|destroy]"
     exit 1
 }
 
@@ -18,13 +18,20 @@ SOURCE_DIR="/chemin/vers/votre/code/source"
 DATA_DIR="/chemin/vers/vos/donnees"
 
 # Nom du conteneur MySQL
-MYSQL_CONTAINER="nom_mysql"
+MYSQL_CONTAINER="mysql"
+
+# Nom des conteneurs d'application 
+WSGI_CONTAINER="wsgi0 wsgi1 wsgi2"
+
+
+# Nom du conteneur du serveur web
+NGINX_CONTAINER="nginx"
 
 # Nom du conteneur Redis
-REDIS_CONTAINER="nom_redis"
+REDIS_CONTAINER="redis"
 
 # Nom du réseau Docker
-DOCKER_NETWORK="nom_reseau"
+DOCKER_NETWORK="front_network back_network"
 
 # installer Docker et Docker Compose sur Ubuntu
 install_docker(){
@@ -64,56 +71,52 @@ install_docker(){
 }
 
 # Fonction pour créer l'environnement de développement
-create_environment() {
-    # Créer un réseau Docker
-    docker network create $DOCKER_NETWORK
-
-    # Démarrer le conteneur MySQL
-    docker run -d --name $MYSQL_CONTAINER --network $DOCKER_NETWORK -e MYSQL_ROOT_PASSWORD=root -v $DATA_DIR/db.sql:/docker-entrypoint-initdb.d/db.sql mysql:latest
-
-    # Démarrer le conteneur Redis
-    docker run -d --name $REDIS_CONTAINER --network $DOCKER_NETWORK redis:latest
-
-    # Build et démarrer les conteneurs Flask et Nginx
-    cd $SOURCE_DIR
-    docker-compose up --build -d
-}
-
-# Fonction pour importer de nouveaux livres depuis un fichier CSV
-import_books() {
-    # Stopper le conteneur Flask pour éviter les conflits lors de l'importation
-    docker-compose stop flask
-
-    # Importer les livres depuis le fichier CSV
-    docker exec -it $MYSQL_CONTAINER mysql -uroot -proot -e "USE votre_base_de_donnees; LOAD DATA LOCAL INFILE '/chemin/vers/vos/donnees/livres.csv' INTO TABLE livre FIELDS TERMINATED BY ',' IGNORE 1 LINES;"
-
-    # Redémarrer le conteneur Flask
-    docker-compose start flask
+create_environment() {  
+    docker compose build
 }
 
 # Importation de nouveaux livres
 import_books() {
-CSV_FILE="nouveaux_livres.csv"
-docker exec -i python_flask_container python3 import_books.py "$CSV_FILE"
+  PYTHONSCRIPT="import_books.py"
+  
+  echo "Vérifions l'état du conteneur mysql"
+  if docker inspect -f '{{.State.Running}}' mysql > /dev/null 2>&1; then
+    python3 $PYTHONSCRIPT 
+  else
+    echo "Aucun conteneur mysql en cours d'exécution"
+    echo "\n il faut que le conteneur mysql soit demarres pour executer cette tache"
+    
+  fi
 }
 
 # Fonction pour démarrer les conteneurs
 start_containers() {
-    docker-compose start
+    docker compose up -d
 }
 
 # Fonction pour arrêter les conteneurs
 stop_containers() {
-    docker-compose stop
+    docker compose stop
 }
 
 # Fonction pour détruire l'environnement de développement
 destroy_environment() {
     # Stopper et supprimer tous les conteneurs
-    docker-compose down
+    docker compose down
 
     # Supprimer le réseau Docker
-    docker network rm $DOCKER_NETWORK
+    docker network rm $DOCKER_NETWORK    
+    docker kill $NGINX_CONTAINER 
+    docker kill $WSGI_CONTAINER 
+    docker kill $REDIS_CONTAINER
+    docker kill $MYSQL_CONTAINER
+    docker rmi -f "$NGINX_CONTAINER":1.25.3 
+    docker rmi -f wsgi0:1.0  wsgi1:1.0 wsgi2:1.0
+    docker rmi -f "$REDIS_CONTAINER":7.2.4  
+    docker rmi -f "$MYSQL_CONTAINER":8.0.22
+    docker network rm -f front_network back_network
+    docker volume rm -f mysql_volume
+    docker system prune -f
 }
 
 # Exécuter l'option spécifiée

@@ -15,8 +15,8 @@ MYSQL_PASSWORD = "password"
 CSV_FILE = "biblio.csv"
 
 # Command for inserting data into MySQL
-MYSQL_CMD = f"docker exec -i mysql mysql -h{MYSQL_HOST} -P{MYSQL_PORT} -u{MYSQL_USER} -p{MYSQL_PASSWORD} {MYSQL_DATABASE}"
-
+MYSQL_CMD = f"docker exec -i mysql mysql  --defaults-extra-file=/app/config.cnf  -h{MYSQL_HOST} -P{MYSQL_PORT} -u{MYSQL_USER} -p{MYSQL_PASSWORD} {MYSQL_DATABASE}"
+#MYSQL_CMD = f"docker exec -i mysql mysql  --defaults-extra-file=config.cnf"
 # Remove double quotes around values in the CSV file
 #subprocess.run(["sed", "-i", 's/"//g', CSV_FILE])
 

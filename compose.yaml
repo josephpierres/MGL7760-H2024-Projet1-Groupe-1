@@ -16,6 +16,7 @@ services:
       MYSQL_PASSWORD: mypassword
     volumes:
       - ./mysql/db.sql/:/docker-entrypoint-initdb.d/db.sql
+      - ./mysql/app:/app/             # pour le fichier de configuration
       - ./mysql/data:/var/lib/mysql   # les donnees que mysql generent
     #command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
   
@@ -29,7 +30,7 @@ services:
     # serveur de cache Regis
   redis:
     container_name: redis
-    image: redis:latest    
+    image: redis:7.2.4    
     ports:
       - '6378:6379'
     volumes:
@@ -39,11 +40,15 @@ services:
   
     # Flask sur python avec WSGI - 1e app serveur
   
-  wsgi0:
+  wsgi0:    
     build:
-      context: ./wsgi
+      context: ./wsgi      
       dockerfile: dockerfile-0    
+      args:
+        buildno: 1  
+    image: wsgi0:1.0
     container_name: wsgi0
+    hostname: wsgi0
     restart: always
     volumes:
       - ./wsgi:/app
@@ -67,9 +72,13 @@ services:
     # Flask sur python avec WSGI - 2e app serveur
   wsgi1:
     build:
-      context: ./wsgi
-      dockerfile: dockerfile-1  
+      context: ./wsgi      
+      dockerfile: dockerfile-1
+      args:
+        buildno: 1  
+    image: wsgi1:1.0  
     container_name: wsgi1
+    hostname: wsgi1
     restart: always
     volumes:
       - ./wsgi:/app
@@ -94,8 +103,12 @@ services:
   wsgi2:
     build:
       context: ./wsgi
-      dockerfile: dockerfile-2  
+      dockerfile: dockerfile-2
+      args:
+        buildno: 1  
+    image: wsgi2:1.0
     container_name: wsgi2
+    hostname: wsgi2
     restart: always
     volumes:
       - ./wsgi:/app
@@ -118,7 +131,7 @@ services:
 
     # le repatiteur de charge et serveur web - Nginx  
   nginx:
-    image: nginx:latest
+    image: nginx:1.25.3
     container_name: nginx  
     restart: always
     volumes: 
@@ -138,12 +151,15 @@ services:
       
 networks:
   front_network:
+    name: front_network
     driver: bridge
   back_network:
+    name: back_network
     driver: bridge      
    
 volumes:
   mysql:
+    name: mysql_volume
     driver: local    
 
 

@@ -1,6 +1,6 @@
 # pour ajouter les donnees
 """ 
-python3 dbigration.py
+python3 dbMigration.py
 # pour visualiser
 """""
 docker compose run mysql  mysql -h mysql -u root -ppassword
@@ -15,6 +15,10 @@ delete from livrecategorie;
 delete from livre;
 delete from editeur;
 
+
+
+exit
+
  set foreign_key_checks=0;
 drop table livreauteur, livrecategorie, livre, editeur, auteur, categorie;
 drop database gestion_bibliotheque;
@@ -27,8 +31,8 @@ docker compose down --remove-orphans --volumes --rmi=local
 docker kill $(docker ps -q)
 docker rm $(docker ps -a -q)
 docker rmi $(docker images -q)
-docker system prune
-docker volume prune
+docker system prune -f
+docker volume prune -f
 
 
 sudo su
