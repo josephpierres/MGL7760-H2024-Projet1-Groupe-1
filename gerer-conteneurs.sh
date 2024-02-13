@@ -11,12 +11,6 @@ if [ -z "$1" ]; then
     usage
 fi
 
-# Répertoire contenant le code source
-SOURCE_DIR="/chemin/vers/votre/code/source"
-
-# Répertoire contenant le fichier SQL initial et le fichier CSV
-DATA_DIR="/chemin/vers/vos/donnees"
-
 # Nom du conteneur MySQL
 MYSQL_CONTAINER="mysql"
 
