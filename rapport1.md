@@ -88,7 +88,7 @@ puis choisir
 "./.venv/bin/python"
 cette action peut etre executer via le terminal de VScode par la commande:
 
-source .venv/bin/activateP
+source .venv/bin/activate
 
 # INSTALLER FLASK et UWSGI
 une fois dans l'environnement virtuel, nous pouvons installer les 

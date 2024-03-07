@@ -58,10 +58,8 @@ services:
       APP_NAME: Bibliotheque 
       MYSQL_HOST: mysql
       REDIS_HOST: redis
-      REDIS_PORT: 6379      
-      #SQLALCHEMY_DATABASE_URI: "mysql+pymysql://root:password@mysql/gestion_bibliotheque"
-      expose: 8080
-      #command: sh -c "python3 dbMigration.py"      
+      REDIS_PORT: 6379     
+      expose: 8080         
     depends_on:      
       mysql:
         condition: service_healthy
@@ -88,8 +86,7 @@ services:
       APP_NAME: Bibliotheque 
       MYSQL_HOST: mysql
       REDIS_HOST: redis
-      REDIS_PORT: 6379      
-      #SQLALCHEMY_DATABASE_URI: "mysql+pymysql://root:password@mysql/gestion_bibliotheque"
+      REDIS_PORT: 6379     
       expose: 8081
       # command: sh -c "python3 manage.py"      
     depends_on:      
@@ -118,10 +115,8 @@ services:
       APP_NAME: Bibliotheque 
       MYSQL_HOST: mysql
       REDIS_HOST: redis
-      REDIS_PORT: 6379      
-      #SQLALCHEMY_DATABASE_URI: "mysql+pymysql://root:password@mysql/gestion_bibliotheque"
-      expose: 8082
-      # command: sh -c "python3 manage.py"      
+      REDIS_PORT: 6379    
+      expose: 8082         
     depends_on:      
       mysql:
         condition: service_healthy
