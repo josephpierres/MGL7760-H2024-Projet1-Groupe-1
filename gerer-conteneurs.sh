@@ -11,12 +11,6 @@ if [ -z "$1" ]; then
     usage
 fi
 
-# Répertoire contenant le code source
-SOURCE_DIR="/chemin/vers/votre/code/source"
-
-# Répertoire contenant le fichier SQL initial et le fichier CSV
-DATA_DIR="/chemin/vers/vos/donnees"
-
 # Nom du conteneur MySQL
 MYSQL_CONTAINER="mysql"
 
@@ -77,8 +71,7 @@ create_environment() {
 
 # Importation de nouveaux livres
 import_books() {
-  PYTHONSCRIPT="import_books.py"
-  
+  PYTHONSCRIPT="$(pwd)/import_books.py"  
   echo "Vérifions l'état du conteneur mysql"
   if docker inspect -f '{{.State.Running}}' mysql > /dev/null 2>&1; then
     python3 $PYTHONSCRIPT 
@@ -104,17 +97,18 @@ destroy_environment() {
     # Stopper et supprimer tous les conteneurs
     docker compose down
 
-    # Supprimer le réseau Docker
-    docker network rm $DOCKER_NETWORK    
+    # Supprimer les réseaux et les conteneurs Docker 
+    docker network rm -f $DOCKER_NETWORK    
     docker kill $NGINX_CONTAINER 
     docker kill $WSGI_CONTAINER 
     docker kill $REDIS_CONTAINER
     docker kill $MYSQL_CONTAINER
+    # supression des images
     docker rmi -f "$NGINX_CONTAINER":1.25.3 
     docker rmi -f wsgi0:1.0  wsgi1:1.0 wsgi2:1.0
     docker rmi -f "$REDIS_CONTAINER":7.2.4  
-    docker rmi -f "$MYSQL_CONTAINER":8.0.22
-    docker network rm -f front_network back_network
+    docker rmi -f "$MYSQL_CONTAINER":8.0.22  
+    # supression des volumes       
     docker volume rm -f mysql_volume
     docker system prune -f
 }

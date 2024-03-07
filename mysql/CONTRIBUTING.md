@@ -3,7 +3,7 @@
 python3 dbMigration.py
 # pour visualiser
 """""
-docker compose run mysql  mysql -h mysql -u root -ppassword
+docker run mysql  mysql -h mysql -u root -ppassword
 
 use gestion_bibliotheque;
 
