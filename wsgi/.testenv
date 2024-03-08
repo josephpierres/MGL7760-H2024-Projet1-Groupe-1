@@ -1,0 +1,10 @@
+[testenv:flake8]
+commands=flake8 <my_code_directory>
+deps =     
+  flake8==2.4.1    
+  flake8-import-order==0.11    
+  pep8-naming==0.4.1 
+
+[flake8] 
+max-line-length = 120 
+import-order-style = google

@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
 from flask_redis import FlaskRedis
 from flask_caching import Cache
-from flask_wtf.csrf import CSRFProtect 
+from flask_wtf.csrf import CSRFProtect
 from config import ProductionConfig
 
 app = Flask(__name__)
@@ -23,6 +23,3 @@ with app.app_context():
         print('\n\n---****** Connexion a Mysql reussie ******')
     except Exception as e:
         print('\n\n----------- Connexion echoue ! ERROR : ', e)
-
-
-from . import routes, models

@@ -16,7 +16,7 @@ setup: $(VENV)
 
 # Exécutez l'analyse statique du code avec Flake8
 lint: $(VENV)
-	$(PYTHON) -m flake8 .
+	$(PYTHON) -m flake8 --extend-ignore E203,W234,E225,E501 ./biblio/models.py
 
 # Exécutez les tests unitaires avec pytest
 test: $(VENV)

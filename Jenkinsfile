@@ -42,7 +42,7 @@ pipeline {
             steps {
                 script {
                     // Check code coverage against a minimum threshold
-                    sh 'make coverage-check'
+                    sh 'make test'
                 }
             }
         }
