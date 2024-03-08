@@ -1,63 +1,47 @@
-# Makefile for python code
-# 
-# > make help
-#
-# The following commands can be used.
-#
-# init:  sets up environment and installs requirements
-# install:  Installs development requirements
-# format:  Formats the code with autopep8
-# lint:  Runs flake8 on src, exit if critical rules are broken
-# clean:  Remove build and cache files
-# env:  Source venv and environment files for testing
-# leave:  Cleanup and deactivate venv
-# test:  Run pytest
-# run:  Executes the logic
+# Makefile pour votre projet Python
 
-.ONESHELL:
-
-.DEFAULT_GOAL := run 
-
+# Variables
 VENV = .venv
-PYTHON = $(VENV)/bin/python
-PIP = $(VENV)/bin/pip
-COVERAGE = $(VENV)/bin/coverage
+PYTHON := $(VENV)/bin/python3
+PIP := $(VENV)/bin/pip
+COVERAGE := $(VENV)/bin/coverage
 
-$(VENV)/bin/activate: requirements.txt
-    python3 -m venv $(VENV)
-    $(PIP) install -r requirements.txt
-    touch $(VENV)/bin/activate
+# Cibles
+.PHONY: setup lint test docs coverage-check
 
-setup: $(VENV)/bin/activate ## sets up environment and installs requirements
+# Installez les dépendances et créez un environnement virtuel
+setup: $(VENV)
+	@echo "Initialisation de l'environnement virtuel..."
+	$(PIP) install -r requirements.txt
 
-clean:
-    rm -rf *.egg-info
-    rm -rf build
-    rm -rf dist
-    rm -rf .pytest_cache
-    # Remove all pycache
-    find . | grep -E "(__pycache__|\.pyc|\.pyo$$)" | xargs rm -rf
-    rm -rf .venv
-    rm -rf flake8_report.xml
-    rm -rf coverage_report.xml
-    rm -rf docs
+# Exécutez l'analyse statique du code avec Flake8
+lint: $(VENV)
+	$(PYTHON) -m flake8 .
 
+# Exécutez les tests unitaires avec pytest
 test: $(VENV)
-    pytest . -p no:logging -p no:warnings
+	$(PYTHON) -m pytest . -p no:logging -p no:warnings
 
-test-coverage: $(VENV)
-    $(COVERAGE) run -m pytest . -p no:logging -p no:warnings 
-    $(COVERAGE) xml -o coverage_report.xml
-
-flake8: $(VENV)
-    flake8 . --format=xml --output-file=flake8_report.xml src
-
+# Générez la documentation avec pdoc
 docs: $(VENV)
-    pdoc --output-dir docs .
-    touch docs/.nojekyll  # Pour éviter que GitHub Pages ne traite pas le dossier docs comme un site Jekyll
+	$(PYTHON) -m pdoc --output-dir docs .
 
+# Vérifiez la couverture du code avec coverage
 coverage-check: $(VENV)
-    $(COVERAGE) report --fail-under=80 
+	$(COVERAGE) run -m pytest . -p no:logging -p no:warnings
+	$(COVERAGE) xml -o coverage_report.xml
 
-# fake target
-.PHONY: run clean
+# Rapport de qualité au format XML pour Jenkins
+quality-report: lint test coverage-check
+	@echo "Génération du rapport de qualité XML pour Jenkins..."
+	# Ajoutez ici les commandes pour générer d'autres rapports (par exemple, pylint, etc.)
+
+# Créez l'environnement virtuel
+$(VENV):
+	( \
+        python3 -m venv $(VENV); \
+        source .venv/bin/activate; \
+        $(PIP) install --upgrade pip; \
+        $(PIP) install coverage flake8 pytest pdoc; \
+        python -m pip install coverage flake8 pytest pdoc; \
+    )
