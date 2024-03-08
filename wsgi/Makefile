@@ -39,9 +39,8 @@ quality-report: lint test coverage-check
 # Créez l'environnement virtuel
 $(VENV):
 	( \
-        python3 -m venv $(VENV); \
-        source .venv/bin/activate; \
+        python3 -m venv $(VENV); \        
         $(PIP) install --upgrade pip; \
         $(PIP) install coverage flake8 pytest pdoc; \
-        python -m pip install coverage flake8 pytest pdoc; \
+        python3 -m pip install coverage flake8 pytest pdoc; \
     )
