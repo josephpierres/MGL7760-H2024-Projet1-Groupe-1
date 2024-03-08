@@ -24,7 +24,7 @@ test: $(VENV)
 
 # Générez la documentation avec pdoc
 docs: $(VENV)
-	$(PYTHON) -m pdoc --output-dir docs .
+	$(PYTHON) -m pdoc --output-dir docs ./biblio
 
 # Vérifiez la couverture du code avec coverage
 coverage-check: $(VENV)
