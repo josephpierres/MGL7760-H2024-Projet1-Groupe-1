@@ -27,8 +27,7 @@ docs: ## Build docker image
 	@docker exec wsgi1 pdoc --output-dir app/docs /app/biblio
 	@docker cp wsgi1:app/docs ./docs
 
-setup:  ## sets up environment and installs requirements
-	docker compose down --remove-orphans --volumes --rmi=local
+setup: destroy ## sets up environment and installs requirements
 	@docker compose up -d
 
 coverage-check: ## Create docker image
@@ -46,12 +45,12 @@ clean-pyc: # type: ignore
 	find . -name '*~' -exec rm -f {} +
  
 destroy: ## build, start and run docker image
-	docker compose down
-	docker network rm -f front_network back_network
-	docker stop $(docker ps -q)
-	docker rmi -f nginx:1.25.3
-	docker rmi -f wsgi0:1.0  wsgi1:1.0 wsgi2:1.0
-	docker rmi -f redis:7.2.4
-	docker rmi -f mysql:8.0.22
-	docker volume rm -f mysql_volume
-	docker system prune -f
+	@docker compose down --remove-orphans --volumes --rmi=local
+	#@docker stop $(docker ps -q)
+	#@docker network rm -f front_network back_network
+	# docker rmi -f nginx:1.25.3
+	# docker rmi -f wsgi0:1.0  wsgi1:1.0 wsgi2:1.0
+	# docker rmi -f redis:7.2.4
+	# docker rmi -f mysql:8.0.22
+	@docker volume rm -f mysql_volume
+	@docker system prune -f
