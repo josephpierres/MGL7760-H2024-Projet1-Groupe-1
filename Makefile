@@ -38,7 +38,7 @@ test: ## Run pytest
 	@docker cp wsgi1:/app/pytest.xml ./pytest.xml
 
 docs:  ## Build docker image
-	cd wsgi && $(PYTHON) -m pdoc --output-dir docs biblio/templates 
+	cd wsgi && $(PYTHON) -m pdoc --force --output-dir docs biblio/templates 
 	
 
 setup: destroy ## sets up environment and installs requirements
