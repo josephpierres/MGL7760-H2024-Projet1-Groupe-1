@@ -3,7 +3,8 @@
 # This target is executed whenever we just type `make`
 .DEFAULT_GOAL = help
 SUBDIRS = wsgi
-
+VENV = .venv
+PYTHON := $(VENV)/bin/python3
 help:
 	@echo "---------------HELP-----------------"
 	@echo "To setup the project type make setup"
@@ -11,11 +12,11 @@ help:
 	@echo "To run the project type make run"
 	@echo "------------------------------------"
 clean: clean-build clean-pyc destroy
-	
 
 flake8:
-	@docker exec wsgi1 flake8 --extend-ignore E203,W234,E225,E501 ./biblio/models.py --format=html --htmldir=flake8-report.xml
-
+	cd wsgi && $(MAKE) lint
+setup:
+	cd wsgi && $(MAKE) setup
 test-coverage: ## Cleanup and deactivate venv
 	cd wsgi && $(MAKE) test
 
@@ -27,8 +28,8 @@ docs: ## Build docker image
 	@docker exec wsgi1 pdoc --force --html --output-dir app/docs /app/biblio
 	@docker cp wsgi1:app/docs ./docs
 
-setup: destroy ## sets up environment and installs requirements
-	@docker compose up -d
+# setup: destroy ## sets up environment and installs requirements
+# 	@docker compose up -d
 
 coverage-check: ## Create docker image
 	@docker exec wsgi1 coverage run -m pytest .

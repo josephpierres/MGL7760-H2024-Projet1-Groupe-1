@@ -15,8 +15,8 @@ setup: $(VENV)
 	$(PIP) install -r requirements.txt
 
 # Exécutez l'analyse statique du code avec Flake8
-lint: $(VENV)
-	$(PYTHON) -m flake8 --extend-ignore E203,W234,E225,E501 ./biblio/models.py
+lint: 
+	$(PYTHON) -m flake8 --extend-ignore E203,W234,E225,E501 ./biblio/models.py --output-file=flake8_report.xml 
 
 # Exécutez les tests unitaires avec pytest
 test: $(VENV)
