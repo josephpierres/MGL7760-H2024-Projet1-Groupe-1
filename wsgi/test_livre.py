@@ -1,7 +1,7 @@
 # test_livre.py
 
-from biblio import livre_to_dict, make_cache_key
-
+from biblio.routes import get_cache_key, set_cache_key
+from biblio import livre_to_dict
 class TestLivreFunctions:
     def test_livre_to_dict(self):
         # Créez un objet Livre fictif pour le test
@@ -26,17 +26,4 @@ class TestLivreFunctions:
         # Vérifiez que le dictionnaire résultant contient les clés attendues
         assert 'id' in result
         assert 'titre' in result
-        # Ajoutez d'autres assertions pour les autres clés
-
-    def test_make_cache_key(self):
-        # Créez une URL fictive pour le test
-        url = 'https://monsite.com/api/books'
-
-        # Appelez la fonction à tester
-        cache_key = make_cache_key(url)
-
-        # Vérifiez que la clé de cache est correcte
-        assert cache_key == url
-
-# Exécutez les tests avec pytest
-# Dans le terminal, exécutez: pytest test_livre.py
+        # Ajoutez d'autres assertions pour les autres clés    

@@ -49,6 +49,12 @@ def livre_to_dict(book):
 
 
 # Fonction pour générer une clé de cache unique basée sur l'URL de la requête
+def set_cache_key(key, data):
+    redis_client.set(key, data)
+
+def get_cache_key(key):
+    return redis_client.get(key)
+
 def make_cache_key(*args, **kwargs):
     return request.url
 

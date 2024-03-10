@@ -18,12 +18,12 @@ echo "Removing mysql container..."
 docker rm mysql
 
 echo " create the image"
-docker build -t mysql_db .
+docker build -t mysql_db ./mysql
 
 echo " lunch the container" 
 docker run --name mysql -dp 3306:3306 -e MYSQL_ROOT_PASSWORD=password -d mysql_db:latest
 
-docker exec -i mysql mysql  --defaults-extra-file=/app/config.cnf  -h{MYSQL_HOST} -P{MYSQL_PORT} -u{MYSQL_USER} -p{MYSQL_PASSWORD} {MYSQL_DATABASE}"
+docker exec -i --name mysql  -v $PWD/mysql/data:/var/lib/mysql mysql -h{MYSQL_HOST} -P{MYSQL_PORT} -u{MYSQL_USER} -p{MYSQL_PASSWORD} {MYSQL_DATABASE}
 
 echo "Started container, forwarded docker host port 3306 to container, connect using details: root:password"
 echo "e.g. mysql -h127.0.0.1 -uroot -ppassword"
