@@ -17,8 +17,8 @@ help:
 clean: clean-build clean-pyc destroy
 	
 
-flake8: $(VENV)
-	$(PYTHON) -m flake8 --extend-ignore E203,W234,E225,E501,E902 --output-file=flake8_report.txt /biblio
+flake8: 
+	cd wsgi && ($(PYTHON) -m flake8 --extend-ignore E203,W234,E225,E501,E902 --output-file=flake8_report.txt biblio/templates)
 
 # Créez l'environnement virtuel
 $(VENV):
@@ -26,9 +26,9 @@ $(VENV):
         python3 -m venv $(VENV); \
 		source ./$</bin/activate ; set -u ;\
         $(PIP) install --upgrade pip; \
+		$(PIP) install -r requirements.txt; \
         $(PIP) install coverage flake8 flake8-html pytest pdoc3; \
-        python3 -m pip install coverage flake8 pytest pdoc; \
-    )
+	)
 
 test-coverage: ## Cleanup and deactivate venv
 	cd wsgi && $(MAKE) test
@@ -37,9 +37,9 @@ test: ## Run pytest
 	@docker exec wsgi1 pytest . --junitxml=/app/pytest.xml
 	@docker cp wsgi1:/app/pytest.xml ./pytest.xml
 
-docs: ## Build docker image
-	@docker exec wsgi1 pdoc --force --html --output-dir app/docs /app/biblio
-	@docker cp wsgi1:app/docs ./docs
+docs:  ## Build docker image
+	cd wsgi && $(PYTHON) -m pdoc --output-dir docs biblio/templates 
+	
 
 setup: destroy ## sets up environment and installs requirements
 	@docker compose up -d

@@ -1,4 +1,9 @@
-[1m/biblio[m[36m:[m0[36m:[m1[36m:[m [1m[31mE902[m FileNotFoundError: [Errno 2] No such file or directory: '/biblio'
 [1m./biblio/flake8_autofix.py[m[36m:[m257[36m:[m11[36m:[m [1m[31mE275[m missing whitespace after keyword
 [1m./biblio/routes.py[m[36m:[m55[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
 [1m./biblio/routes.py[m[36m:[m58[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m./biblio/flake8_autofix.py[m[36m:[m257[36m:[m11[36m:[m [1m[31mE275[m missing whitespace after keyword
+[1m./biblio/routes.py[m[36m:[m55[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m./biblio/routes.py[m[36m:[m58[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1mbiblio/flake8_autofix.py[m[36m:[m257[36m:[m11[36m:[m [1m[31mE275[m missing whitespace after keyword
+[1mbiblio/routes.py[m[36m:[m55[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1mbiblio/routes.py[m[36m:[m58[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
