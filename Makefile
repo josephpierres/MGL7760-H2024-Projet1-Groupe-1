@@ -28,6 +28,7 @@ docs: ## Build docker image
 	@docker cp wsgi1:app/docs ./docs
 
 setup:  ## sets up environment and installs requirements
+	docker compose down --remove-orphans --volumes --rmi=local
 	@docker compose up -d
 
 coverage-check: ## Create docker image
