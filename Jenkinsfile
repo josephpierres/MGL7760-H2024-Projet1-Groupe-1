@@ -20,6 +20,15 @@ pipeline {
             }
         }
 
+         stage('Statics Analysis ') {
+            steps {
+                script {
+                    // Run unit tests and generate coverage report
+                    sh 'make flake8'
+                }
+            }
+        }
+
         stage('Generate Documentation') {
             steps {
                 script {
