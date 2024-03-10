@@ -12,10 +12,14 @@ CSV_FILE = "biblio.csv"
 echo "Cleaning up existing mysql container"
 
 echo "Stopping mysql container..."
-docker stop mysql
+docker stop mysql redis
 
 echo "Removing mysql container..."
-docker rm mysql
+docker rm mysql redis
+
+echo " create the image"
+docker build -t redis ./redis
+docker run --name redis -dp 6378:6379 redis 
 
 echo " create the image"
 docker build -t mysql_db ./mysql
