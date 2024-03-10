@@ -14,7 +14,7 @@ clean: clean-build clean-pyc destroy
 	
 
 flake8:
-	@docker exec wsgi1 flake8 --extend-ignore E203,W234,E225,E501 ./biblio/models.py --format=html --htmldir=flake-report
+	@docker exec wsgi1 flake8 --extend-ignore E203,W234,E225,E501 ./biblio/models.py --format=html --htmldir=flake8-report.xml
 
 test-coverage: ## Cleanup and deactivate venv
 	cd wsgi && $(MAKE) test
