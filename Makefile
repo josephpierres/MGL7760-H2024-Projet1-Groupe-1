@@ -24,7 +24,7 @@ test: ## Run pytest
 	@docker cp wsgi1:/app/pytest.xml ./pytest.xml
 
 docs: ## Build docker image
-	@docker exec wsgi1 pdoc --output-dir app/docs /app/biblio
+	@docker exec wsgi1 pdoc --force --html --output-dir app/docs /app/biblio/routes.py
 	@docker cp wsgi1:app/docs ./docs
 
 setup: destroy ## sets up environment and installs requirements

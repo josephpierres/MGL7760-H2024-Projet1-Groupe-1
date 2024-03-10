@@ -40,7 +40,7 @@ mccabe==0.7.0
 meld3==2.0.1
 mysqlclient==2.2.3
 packaging==23.2
-pdoc==14.4.0
+pdoc3
 platformdirs==4.2.0
 pluggy==1.4.0
 pycodestyle==2.11.1
