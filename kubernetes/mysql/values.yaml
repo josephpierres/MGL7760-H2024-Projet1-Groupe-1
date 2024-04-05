@@ -1,0 +1,25 @@
+environment: production
+namespace: bbl
+app: biblio
+replicas: 3
+container:
+  name: mysql
+  port: 3306
+  image: mysql
+  tag: 8.3
+  imagePullPolicy: "IfNotPresent"
+  containerSecurityContext:
+    runAsUser: 1001
+    runAsNonRoot: true
+  podSecurityContext:
+    fsGroup: 1001
+db:
+  name: biblio
+  rootpassword: password
+  user: user
+  userpassword: password
+pvc:
+  volume: mysql-pv
+  permissions: mysql-pv-permissions
+  path: /data/mysql-volume
+  claim: mysql-pv-claim

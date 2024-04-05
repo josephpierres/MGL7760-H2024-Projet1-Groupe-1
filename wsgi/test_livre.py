@@ -1,6 +1,5 @@
 # test_livre.py
 
-from biblio.routes import get_cache_key, set_cache_key
 from biblio.routes import livre_to_dict
 class TestLivreFunctions:
     def test_livre_to_dict(self):
@@ -21,10 +20,10 @@ class TestLivreFunctions:
         }
 
         # Appelez la fonction à tester
-        #result = livre_to_dict(book)
+        result = livre_to_dict(book)
 
         # Vérifiez que le dictionnaire résultant contient les clés attendues
-        # assert 'id' in result
-        # assert 'titre' in result
+        assert 'id' in result
+        assert 'titre' in result
         assert 'id' is not None
-        # Ajoutez d'autres assertions pour les autres clés    
+        

@@ -1,0 +1,18 @@
+environment: production
+namespace: bbl
+app: biblio
+replicas: 3
+container:
+  name: wsgi
+  port: 8080
+  image: your-wsgi-image
+  tag: latest
+  imagePullPolicy: "IfNotPresent"
+  containerSecurityContext:
+    runAsUser: 1001
+    runAsNonRoot: true
+pvc:
+  volume: wsgi-pv
+  permissions: wsgi-pv-permissions
+  path: /path/to/wsgi-volume
+  claim: wsgi-pv-claim

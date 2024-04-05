@@ -1,0 +1,5 @@
+apiVersion: v2
+name: nginx
+version: 1.0.0
+sources:
+  - https://github.com/josephpierres/MGL7760-H2024-Projet1-Groupe-1

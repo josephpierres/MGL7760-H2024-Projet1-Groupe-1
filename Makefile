@@ -37,7 +37,7 @@ test: ## Run pytest
 	@docker exec wsgi1 pytest . --junitxml=/app/pytest.xml
 	@docker cp wsgi1:/app/pytest.xml ./pytest.xml
 
-docs:  ## Build docker image
+docs:  
 	cd wsgi && $(PYTHON) -m pdoc --force --output-dir docs biblio/templates 
 	
 
@@ -68,3 +68,4 @@ destroy: ## build, start and run docker image
 	# docker rmi -f mysql:8.0.22
 	@docker volume rm -f mysql_volume
 	@docker system prune -f
+deploy: ## deploy the app with helm "helm append"

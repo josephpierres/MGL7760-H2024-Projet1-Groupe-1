@@ -1,18 +1,27 @@
 # Makefile pour votre projet Python
 
+# Cibles
+.PHONY: setup lint test docs coverage-check
 # Variables
 VENV = .venv
 PYTHON := $(VENV)/bin/python3
 PIP := $(VENV)/bin/pip
 COVERAGE := $(VENV)/bin/coverage
 
-# Cibles
-.PHONY: setup lint test docs coverage-check
+$(VENV):
+	( \
+        python3 -m venv $(VENV); \
+		source ./$</bin/activate ; set -u ;\
+        $(PIP) install --upgrade pip; \
+		$(PIP) install -r requirements.txt; \
+        $(PIP) install coverage flake8 flake8-html pytest pdoc3; \
+	)
+	
 
 # Installez les dépendances et créez un environnement virtuel
 setup: $(VENV)
 	@echo "Initialisation de l'environnement virtuel..."
-	$(PIP) install -r requirements.txt
+	$(PYTHON) -m flask run
 
 # Exécutez l'analyse statique du code avec Flake8
 lint: 
