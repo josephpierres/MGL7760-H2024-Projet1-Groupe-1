@@ -45,7 +45,7 @@ data:
     shopt -s extglob 
     cd /app/
     git clone -b projet3 https://github.com/josephpierres/MGL7760-H2024-Projet1-Groupe-1.git temp
-    mv temp/.git /app/public/.git
+    mv temp/.git public/.git
     rm -rf temp
     
     find ./public -mindepth 1 ! -regex '^./public/k8s/data/wsgi\(/.*\)?' -delete

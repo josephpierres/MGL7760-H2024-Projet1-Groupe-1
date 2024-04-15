@@ -1,7 +1,17 @@
-# appel du package app qui a le fichier __init__.py et views.py
-from biblio import app
+#!/bin/env python3
+
 import os
-if __name__ == "__main__":
-    #app.run(host='0.0.0.0', port=os.environ.get("FLASK_SERVER_PORT"), debug=True)
-    app.run(host="0.0.0.0")
-   
+from flask import Flask, render_template
+
+app = Flask(__name__)
+
+@app.route("/")
+def homepage():
+    return render_template("homepage.html", content="Hello world")
+
+if __name__ == '__main__':
+    app.run(
+        host=os.getenv('FLASK_IP', '0.0.0.0'),
+        port=os.getenv('FLASK_PORT', 5000),
+        debug=bool(os.getenv('FLASK_DEBUG', True))
+    )

@@ -36,9 +36,9 @@ spec:
           name: http
           protocol: TCP
         volumeMounts:
-        - name: uwsgi-config-volume
-          mountPath: /uwsgi.ini
-          subPath: uwsgi.ini
+        # - name: uwsgi-config-volume
+        #   mountPath: /uwsgi.ini
+        #   subPath: uwsgi.ini
         - name: www-storage
           mountPath: /app
         livenessProbe:
