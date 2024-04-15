@@ -1,7 +1,7 @@
 import os
 class DefaultConfig(object):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:password@flask-mysql:3306/gestion_bibliotheque'
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:password@flask-mysql.bbl.svc.cluster.local:3306/gestion_bibliotheque'
     #SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:password@localhost:3306/gestion_bibliotheque'
     SQLALCHEMY_TRACK_MODIFICATIONS = True
     REDIS_URL = "redis://redis:6379/0"

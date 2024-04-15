@@ -2,16 +2,21 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:  
   namespace: bbl
+  name: flask-redis
   labels:
     app: flaskapp
 spec:
   selector:
     matchLabels:
-      app: flaskapp     
+      app: flaskapp
+      tier: redis
+  strategy:
+    type: Recreate     
   template:
     metadata:
       labels:
-        app: flaskapp       
+        app: flaskapp 
+        tier: redis      
     spec:
       containers:
         - name: redis

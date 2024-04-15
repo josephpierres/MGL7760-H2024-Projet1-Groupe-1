@@ -44,7 +44,7 @@ image: repository:organization_name/image_name:image_version
 
 kubectl logs app-844f8df59f-57875  -n bbl -p
 
-
+kubectl exec -it -n bbl web-bff778fb8-bxwft -- /bin/bash
 
 
 As the handbook describes, you can reuse the Docker daemon from Minikube with eval $(minikube docker-env).

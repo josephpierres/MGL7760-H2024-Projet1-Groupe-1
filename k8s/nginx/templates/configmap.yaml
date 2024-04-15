@@ -11,7 +11,7 @@ data:
       listen 80 default_server;
       listen [::]:80 default_server;
       server_name localhost;
-      root /app;
+      root /app/public;
       location / {
         include uwsgi_params;
         #uwsgi_pass unix:/tmp/uwsgi.socket;

@@ -27,6 +27,9 @@ spec:
         image: python:3.10
         #  Remember to turn off the imagePullPolicy:Always (use imagePullPolicy:IfNotPresent or imagePullPolicy:Never) in your yaml file
         imagePullPolicy: Always
+        envFrom:
+          - configMapRef:
+              name: flask
         command: ["uwsgi"]
         args: ["--ini", "/uwsgi.ini"]
         ports:
@@ -38,9 +41,24 @@ spec:
           mountPath: /uwsgi.ini
           subPath: uwsgi.ini
         - name: www-storage
-          mountPath: /app/
+          mountPath: /app
+        livenessProbe:
+          exec:
+            command:
+              - dir
+              - /app/public
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        readinessProbe:
+          exec:
+            command:
+              - ls
+              - /app/public
+          initialDelaySeconds: 5
+          periodSeconds: 5
       initContainers:
-      - name: layering
+      - name: npm
+        workingDir: /app
         image: python:3.10
         imagePullPolicy: Always
         volumeMounts:
@@ -48,7 +66,7 @@ spec:
           mountPath: /start.sh
           subPath: start.sh
         - name: www-storage
-          mountPath: /app/
+          mountPath: /app/public
         command:
         - "bash"
         - "/start.sh"
