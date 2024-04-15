@@ -1,5 +1,5 @@
 from biblio.utilities import AuthorSearchForm, CategoryForm, TitleSearchForm
-from . import app, redis_client
+from . import app #, redis_client
 from flask import render_template, request, jsonify
 from biblio.models import Auteur, Categorie, Livre
 from datetime import datetime
@@ -12,9 +12,10 @@ from datetime import datetime
 @app.route('/')
 def index():
     current_time = datetime.now().strftime("%d-%m-%Y")
-    redis_client.set('flask_key', current_time)
-    value = redis_client.get('flask_key').decode('utf-8')
-    return render_template('index.html', date_du_jour=value)
+    # redis_client.set('flask_key', current_time)
+    # value = redis_client.get('flask_key').decode('utf-8')
+    # return render_template('index.html', date_du_jour=value)
+    return render_template('index.html', date_du_jour=current_time)
 
 # flask health check
 
@@ -49,14 +50,14 @@ def livre_to_dict(book):
 
 
 # Fonction pour générer une clé de cache unique basée sur l'URL de la requête
-def set_cache_key(key, data):
-    redis_client.set(key, data)
+# def set_cache_key(key, data):
+#     redis_client.set(key, data)
 
-def get_cache_key(key):
-    return redis_client.get(key)
+# def get_cache_key(key):
+#     return redis_client.get(key)
 
-def make_cache_key(*args, **kwargs):
-    return request.url
+# def make_cache_key(*args, **kwargs):
+#     return request.url
 
 
 # Afficher la liste de tous les livres avec des informations sur le livre, ses catégories, le(s) auteur(s) et l'éditeur

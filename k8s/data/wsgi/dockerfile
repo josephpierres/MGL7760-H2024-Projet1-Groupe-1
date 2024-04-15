@@ -5,7 +5,7 @@ ARG name=defaultValue
 LABEL maintainer="Pierre JOSEPH <pierre@email.com>" \
       version="1.0" \
       description="du flask avec python"
-COPY . /app
+COPY . .
 # installer les dependances à Python
 RUN pip install --no-cache-dir -r requirements.txt
 CMD [ "uwsgi", "--ini", "app.ini"] 

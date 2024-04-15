@@ -8,8 +8,8 @@ data:
     [uwsgi]
     wsgi-file = wsgi.py
     #WSGI module and Callable app
-    virtualenv = /app/.venv/
-    chdir = /app/
+    virtualenv = /app/.venv
+    chdir = /app
     callable = app
     module = main
     callable = app
@@ -43,14 +43,11 @@ data:
   start.sh: |
     #!/bin/bash
     cd /app
-    git clone https://github.com/josephpierres/MGL7760-H2024-Projet1-Groupe-1.git /app    
-    shopt -s extglob
+    git clone -b projet3 https://github.com/josephpierres/MGL7760-H2024-Projet1-Groupe-1.git .    
     echo " effacer tout sauf le repertoire wsgi"
-    find . -mindepth 1 -maxdepth 1 ! -name 'wsgi' -exec rm -rf {} +  
-    # copier le contenu du wsgi dans le public
-    cp -r /wsgi/* .
-    echo "eliminer le wsgi"
-    rm -rf wsgi
+    rm -rf !(k8s)
+    cp -r k8s/data/wsgi/* .
+    rm -rf k8s
     shopt -u extglob
     /usr/bin/python3 -m venv .venv
     source .venv/bin/activate

@@ -42,7 +42,7 @@ kubectl delete sc --all -n bbl
 image: repository:organization_name/image_name:image_version
 
 
-kubectl logs app-57dc665d88-xc9hp -n bbl -p
+kubectl logs app-5fdccc76b5-l2fk9  -n bbl -p
 
 
 
@@ -81,3 +81,5 @@ kubectl run bbl-wsgi --image=wsgi:1.0.3 --image-pull-policy=Never
 
 # Check that it's running
 kubectl get pods
+
+kubectl get events -n bbl --field-selector involvedObject.name=app-5fdccc76b5-l2fk9
