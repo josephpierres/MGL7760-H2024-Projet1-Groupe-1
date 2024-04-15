@@ -17,7 +17,7 @@ ADD ./requirements.txt /app
 # RUN wget https://bootstrap.pypa.io/get-pip.py
 # RUN python3 get-pip.py
 # RUN rm get-pip.py
-RUN pip install --upgrade pip
+# RUN pip install --upgrade pip
 # installer les dependances à Python
 RUN pip install --no-cache-dir -r requirements.txt
 

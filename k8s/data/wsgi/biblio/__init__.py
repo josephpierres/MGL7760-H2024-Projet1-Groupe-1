@@ -4,10 +4,10 @@ from flask import Flask
 #from flask_redis import FlaskRedis
 # from flask_caching import Cache
 from flask_wtf.csrf import CSRFProtect
-from config import ProductionConfig
+#from config import ProductionConfig
 
 app = Flask(__name__)
-app.config.from_object(ProductionConfig)
+#app.config.from_object(ProductionConfig)
 csrf = CSRFProtect(app)
 #db = SQLAlchemy(app)
 
