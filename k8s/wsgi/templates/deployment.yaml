@@ -8,11 +8,10 @@ metadata:
   name: app  
   namespace: bbl
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
-      app: flaskapp
-      
+      app: flaskapp      
   strategy:
     type: Recreate
   template:
@@ -45,15 +44,15 @@ spec:
         livenessProbe:
           exec:
             command:
-              - dir
-              - /app/public
+              - cat
+              - /app/public/wsgi.py
           initialDelaySeconds: 5
           periodSeconds: 5
         readinessProbe:
           exec:
             command:
-              - ls
-              - /app/public
+              - cat
+              - /app/public/wsgi.py
           initialDelaySeconds: 5
           periodSeconds: 5
       initContainers:

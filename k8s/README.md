@@ -39,6 +39,9 @@ kubectl delete pv --all -n bbl
 kubectl delete pvc --all -n bbl
 kubectl delete sc --all -n bbl
 
+
+kubectl describe pod -n bbl app
+
 image: repository:organization_name/image_name:image_version
 
 
