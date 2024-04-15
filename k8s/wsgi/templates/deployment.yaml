@@ -1,0 +1,67 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: flaskapp
+    tier: frontend
+  name: app  
+  namespace: bbl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flaskapp
+      
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: flaskapp
+        tier: frontend
+        
+    spec:
+      containers:
+      - name: flask-uwsgi
+        image: localhost:5000/bbl-wsgi:latest
+        #  Remember to turn off the imagePullPolicy:Always (use imagePullPolicy:IfNotPresent or imagePullPolicy:Never) in your yaml file
+        imagePullPolicy: Never
+        command: ["uwsgi"]
+        args: ["--ini", "/uwsgi.ini"]
+        ports:
+        - containerPort: 8001
+          name: http
+          protocol: TCP
+        volumeMounts:
+        - name: uwsgi-config-volume
+          mountPath: /uwsgi.ini
+          subPath: uwsgi.ini
+        - name: www-storage
+          mountPath: /app/
+      initContainers:
+      - name: layering
+        image: localhost:5000/bbl-wsgi:latest
+        imagePullPolicy: Never
+        volumeMounts:
+        - name: start-config-volume
+          mountPath: /start.sh
+          subPath: start.sh
+        - name: www-storage
+          mountPath: /app
+        command:
+        - "bash"
+        - "/start.sh"
+                
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes:
+      - name: www-storage
+        persistentVolumeClaim:
+          claimName: flask-pv-claim
+      - name: uwsgi-config-volume
+        configMap:
+          name: uwsgi-config
+      - name: start-config-volume
+        configMap:
+          name: start-config

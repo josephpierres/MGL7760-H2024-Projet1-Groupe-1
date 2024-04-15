@@ -1,3 +1,6 @@
+kubectl get pods | grep sas-mi pour trouver le tag de 
+kubectl -n $GELENV_NS get pods | grep microanalytic | awk 'NR==1{print $1}'
+
 Installation de minikube et kubectl
 
 # apres install
@@ -27,3 +30,30 @@ correction:
 export KUBECONFIG=~/.kube/config
 
 helm install mysql-chart ./mysql-chart --namespace bbl --values values.yaml.
+
+
+pipeline {
+    agent any
+    environment {
+        KUBECONFIG = credentials('kubernetes-config')
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/kubernetes/ingress-nginx.git'
+            }
+        }
+        stage('Deploy Helm chart') {
+            steps {
+                sh "helm install ingress-nginx ./deploy/charts/ingress-nginx --namespace ingress-nginx --set controller.publishService.enabled=true --set controller.service.loadBalancerIP=${env.LB_IP}"
+            }
+        }
+    }
+}
+
+
+
+
+
+helm ls --all-namespace
+helm uninstall <package> --namespace=bbl

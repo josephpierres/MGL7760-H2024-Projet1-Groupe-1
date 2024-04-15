@@ -1,0 +1,46 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: flaskapp
+    tier: frontend
+  name: web  
+  namespace: bbl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flaskapp
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: flaskapp
+        tier: frontend
+    spec:
+      containers:
+      - name: flask-nginx
+        image: nginx:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        volumeMounts:
+        - name: nginx-config-volume
+          mountPath: /etc/nginx/conf.d/default.conf
+          subPath: default.conf
+        - name: www-storage
+          mountPath: /app/     
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes:
+      - name: www-storage
+        persistentVolumeClaim:
+          claimName: flask-pv-claim      
+      - name: nginx-config-volume
+        configMap:
+          name: nginx-config
+      
