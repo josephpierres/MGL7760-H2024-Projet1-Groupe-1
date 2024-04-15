@@ -24,19 +24,15 @@ spec:
     spec:
       containers:
       - name: flask-uwsgi
-        image: localhost:5000/bbl-wsgi:latest
+        image: python:3.10
         #  Remember to turn off the imagePullPolicy:Always (use imagePullPolicy:IfNotPresent or imagePullPolicy:Never) in your yaml file
-        imagePullPolicy: IfNotPresent
-        env:
-            - name: db_root_password
-              value: password
-            - name: db_name
-              value: gestion_bibliotheque
+        imagePullPolicy: Always
         command: ["uwsgi"]
         args: ["--ini", "/uwsgi.ini"]
         ports:
-        - containerPort: 5000
-         
+        - containerPort: 8001
+          name: http
+          protocol: TCP
         volumeMounts:
         - name: uwsgi-config-volume
           mountPath: /uwsgi.ini
@@ -45,14 +41,14 @@ spec:
           mountPath: /app/
       initContainers:
       - name: layering
-        image: localhost:5000/bbl-wsgi:latest
-        imagePullPolicy: IfNotPresent
+        image: python:3.10
+        imagePullPolicy: Always
         volumeMounts:
         - name: start-config-volume
           mountPath: /start.sh
           subPath: start.sh
         - name: www-storage
-          mountPath: /app
+          mountPath: /app/
         command:
         - "bash"
         - "/start.sh"

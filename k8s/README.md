@@ -34,7 +34,7 @@ kubectl run -it --rm --image=mysql:8.3 --restart=Never mysql-client -- mysql -h 
 mysql -ppassword 
 use gestion_bibliotheque
 
-helm delete bbl-mysql -n bbl
+helm delete bbl-wsgi -n bbl
 kubectl delete pv --all -n bbl
 kubectl delete pvc --all -n bbl
 kubectl delete sc --all -n bbl
@@ -42,7 +42,7 @@ kubectl delete sc --all -n bbl
 image: repository:organization_name/image_name:image_version
 
 
-kubectl logs app-5fdccc76b5-l2fk9  -n bbl -p
+kubectl logs app-844f8df59f-57875  -n bbl -p
 
 
 
@@ -82,4 +82,4 @@ kubectl run bbl-wsgi --image=wsgi:1.0.3 --image-pull-policy=Never
 # Check that it's running
 kubectl get pods
 
-kubectl get events -n bbl --field-selector involvedObject.name=app-5fdccc76b5-l2fk9
+minikube service nginx-service

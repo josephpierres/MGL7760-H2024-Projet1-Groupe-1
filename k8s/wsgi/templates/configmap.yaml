@@ -8,8 +8,8 @@ data:
     [uwsgi]
     wsgi-file = wsgi.py
     #WSGI module and Callable app
-    virtualenv = /app/.venv
-    chdir = /app
+    virtualenv = /app/public/.venv/
+    chdir = /app/public/
     callable = app
     module = main
     callable = app
@@ -42,13 +42,12 @@ metadata:
 data:
   start.sh: |
     #!/bin/bash
-    cd /app
-    git clone -b projet3 https://github.com/josephpierres/MGL7760-H2024-Projet1-Groupe-1.git .    
-    echo " effacer tout sauf le repertoire wsgi"
+    cd /app/
+    git clone -b projet3 https://github.com/josephpierres/MGL7760-H2024-Projet1-Groupe-1.git ./app/public
+    cd /app/public     
     rm -rf !(k8s)
     cp -r k8s/data/wsgi/* .
-    rm -rf k8s
-    shopt -u extglob
+    rm -rf k8s    
     /usr/bin/python3 -m venv .venv
     source .venv/bin/activate
-    pip install -r requirements.txt
+    pip install --no-cache-dir -r requirements.txt
