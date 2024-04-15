@@ -29,8 +29,8 @@ spec:
         envFrom:
           - configMapRef:
               name: flask
-        command: ["uwsgi"]
-        args: ["--ini", "/uwsgi.ini"]
+        command: ["uwsgi", "--ini", "app.ini"]
+        #args: ["--ini", "/uwsgi.ini"]
         ports:
         - containerPort: 8001
           name: http
