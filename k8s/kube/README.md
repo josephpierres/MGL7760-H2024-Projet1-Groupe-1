@@ -11,7 +11,6 @@ These are the steps to create a MySQL instance inside Kubernetes
 
 kubectl -n bbl apply -k . 
 helm install -n bbl bbl-wsgi ./wsgi
-
 helm install -n bbl bbl-nginx ./nginx
 
 helm delete bbl-nginx -n bbl
@@ -38,7 +37,7 @@ kubectl exec -it -n bbl wsgi-biblio-55b9dc7f78-4k24m  -- /bin/bash
 
 kubectl run -it --rm --image=mysql:8.3 --restart=Never mysql-client -- mysql -h mysql -password="password"
 
-`` kubectl describe pod -n bbl app-7b6b68ccb8-g67q7  ``
+`` kubectl describe pod -n bbl wsgi-biblio-55b9dc7f78-gvgff  ``
 
 mysql -ppassword 
 use gestion_bibliotheque
@@ -56,7 +55,7 @@ image: repository:organization_name/image_name:image_version
 
 ```   kubectl logs app-79759d7c88-drnph  -n bbl -p    ``
 
-kubectl exec -it -n bbl nginx-biblio-64f6ff75fb-9w656 -- /bin/bash
+kubectl exec -it -n bbl nginx-biblio-64f6ff75fb-vx86r -- /bin/bash
 
 
 As the handbook describes, you can reuse the Docker daemon from Minikube with eval $(minikube docker-env).
@@ -80,7 +79,10 @@ minikube docker-env | Invoke-Expression # PowerShell
 
 # Build image
 sudo docker build -t bbl-wsgi ./data/wsgi
-`` minikube image build -t biblio-wsgi:1.0.0 ./data/wsgi ``
+
+### pour creer l'image que nous avons besoin dans minikube
+eval $(minikube docker-env)
+minikube image build -t biblio-wsgi:1.0.0 ./data/wsgi 
 
 # Load the image into Minikube
 minikube image load bbl-wsgi
