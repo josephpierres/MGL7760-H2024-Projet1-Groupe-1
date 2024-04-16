@@ -7,7 +7,7 @@ data:
   uwsgi.ini: |
     [uwsgi]
     #WSGI module and Callable app
-    virtualenv = /srv/app/public/venv/
+    virtualenv = /srv/app/public/.venv/
     chdir = /srv/app/public/
     module = main
     callable = app
