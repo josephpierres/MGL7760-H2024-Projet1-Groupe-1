@@ -42,11 +42,12 @@ data:
     #!/bin/bash
     cd /srv/app/
     git clone -b projet3 https://github.com/josephpierres/MGL7760-H2024-Projet1-Groupe-1.git /srv/app/publics
-    mv publics/k8s/data/wsgi public
+    cp -r publics/k8s/data/wsgi/* public/
     rm -rf publics 
-    # cd /srv/app/public    
-    # /usr/bin/python3 -m venv .venv
-    # source .venv/bin/activate
-    # pip install -r requirements.txt
+    cd /srv/app/public
+    cp -r wsgi/* .
+    rm -rf wsgi  
+    source .venv/bin/activate
+    pip install -r requirements.txt
 
    

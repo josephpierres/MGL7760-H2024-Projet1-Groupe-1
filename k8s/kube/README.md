@@ -7,11 +7,20 @@ These are the steps to create a MySQL instance inside Kubernetes
 # installation de redis
 ``helm install -n bbl bbl-redis ./redis``
 # installation de wsgi
-``helm install -n bbl bbl-wsgi ./wsgi``
-# installation de wsgi
-``helm install -n bbl bbl-nginx ./nginx``
 
-``  helm delete bbl-wsgi -n bbl    ``
+
+kubectl -n bbl apply -k . 
+helm install -n bbl bbl-wsgi ./wsgi
+
+helm install -n bbl bbl-nginx ./nginx
+
+helm delete bbl-nginx -n bbl
+helm delete bbl-wsgi -n bbl
+kubectl delete  pv app-pv -n bbl  
+
+
+helm upgrade -n bbl bbl-wsgi ./wsgi
+
 
 minikube service flask-nginx -n bbl
 
@@ -25,7 +34,7 @@ Choisissez le nom du pod MySQL que vous souhaitez accéder.
 Utilisez la commande kubectl exec pour exécuter des commandes à l'intérieur du pod 
 
 
-kubectl exec -it -n bbl flask-mysql-6f645c778-jbln8  -- /bin/bash
+kubectl exec -it -n bbl wsgi-biblio-55b9dc7f78-4k24m  -- /bin/bash
 
 kubectl run -it --rm --image=mysql:8.3 --restart=Never mysql-client -- mysql -h mysql -password="password"
 
@@ -47,7 +56,7 @@ image: repository:organization_name/image_name:image_version
 
 ```   kubectl logs app-79759d7c88-drnph  -n bbl -p    ``
 
-kubectl exec -it -n bbl web-bff778fb8-qcjps  -- /bin/bash
+kubectl exec -it -n bbl nginx-biblio-64f6ff75fb-9w656 -- /bin/bash
 
 
 As the handbook describes, you can reuse the Docker daemon from Minikube with eval $(minikube docker-env).
@@ -85,4 +94,4 @@ kubectl run bbl-wsgi --image=wsgi:1.0.3 --image-pull-policy=Never
 # Check that it's running
 kubectl get pods
 
-minikube service nginx-service
+minikube service nginx-biblio-service -n bbl

@@ -2,7 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
-flask/.venv/
+#flask/.venv/
 # C extensions
 *.so
 
@@ -123,13 +123,13 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
-.venv
+#.env
+#.venv
 env/
-venv/
+#venv/
 ENV/
-env.bak/
-venv.bak/
+#env.bak/
+#venv.bak/
 
 # Spyder project settings
 .spyderproject

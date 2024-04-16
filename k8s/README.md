@@ -8,7 +8,7 @@ These are the steps to create a MySQL instance inside Kubernetes
 ``helm install -n bbl bbl-redis ./redis``
 # installation de wsgi
 ``helm install -n bbl bbl-wsgi ./wsgi``
-# installation de wsgi
+# installation de nginx
 ``helm install -n bbl bbl-nginx ./nginx``
 
 
@@ -71,7 +71,7 @@ minikube docker-env | Invoke-Expression # PowerShell
 
 # Build image
 sudo docker build -t bbl-wsgi ./data/wsgi
-minikube image build -t wsgi:1.0.0 ./data/wsgi
+minikube image build -t biblio-wsgi:1.0.0 ./data/wsgi
 
 # Load the image into Minikube
 minikube image load bbl-wsgi
@@ -85,4 +85,6 @@ kubectl run bbl-wsgi --image=wsgi:1.0.3 --image-pull-policy=Never
 # Check that it's running
 kubectl get pods
 
-minikube service nginx-service
+
+minikube service list
+minikube service nginx-service -n bbl
