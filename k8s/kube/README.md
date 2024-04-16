@@ -16,6 +16,9 @@ helm install -n bbl bbl-nginx ./nginx
 helm delete bbl-nginx -n bbl
 helm delete bbl-wsgi -n bbl
 kubectl delete  pv app-pv -n bbl  
+kubectl delete  pvc app-pvc -n bbl 
+kubectl delete  sc app-sc -n bbl  
+kubectl delete  configmap uwsgi-config -n bbl   
 
 
 helm upgrade -n bbl bbl-wsgi ./wsgi
@@ -53,9 +56,9 @@ kubectl describe pod -n bbl app
 image: repository:organization_name/image_name:image_version
 
 
-```   kubectl logs app-79759d7c88-drnph  -n bbl -p    ``
+```   kubectl logs wsgi-biblio-55b9dc7f78-gvgff   -n bbl -p    ``
 
-kubectl exec -it -n bbl nginx-biblio-64f6ff75fb-vx86r -- /bin/bash
+kubectl exec -it -n bbl wsgi-biblio-55b9dc7f78-gvgff -- /bin/bash
 
 
 As the handbook describes, you can reuse the Docker daemon from Minikube with eval $(minikube docker-env).

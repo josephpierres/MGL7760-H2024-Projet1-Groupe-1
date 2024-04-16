@@ -7,7 +7,7 @@ data:
   uwsgi.ini: |
     [uwsgi]
     #WSGI module and Callable app
-    virtualenv = /srv/app/public/.venv/
+    virtualenv = /srv/app/public/venv/
     chdir = /srv/app/public/
     module = main
     callable = app
@@ -42,12 +42,13 @@ data:
     #!/bin/bash
     cd /srv/app/
     git clone -b projet3 https://github.com/josephpierres/MGL7760-H2024-Projet1-Groupe-1.git /srv/app/publics
-    cp -r publics/k8s/data/wsgi/* public/
+    cp -ra publics/k8s/data/wsgi/* public/
     rm -rf publics 
     cd /srv/app/public
-    cp -r wsgi/* .
+    cp -ra wsgi/* .
     rm -rf wsgi  
-    source .venv/bin/activate
+    /usr/bin/python3 -m venv venv
+    source venv/bin/activate
     pip install -r requirements.txt
 
    
