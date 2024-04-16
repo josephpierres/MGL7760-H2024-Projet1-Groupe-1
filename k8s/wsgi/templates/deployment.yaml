@@ -23,24 +23,24 @@ spec:
     spec:
       containers:
       - name: flask-uwsgi
-        image: python:3.10
+        image: wsgi:1.0.0
         #  Remember to turn off the imagePullPolicy:Always (use imagePullPolicy:IfNotPresent or imagePullPolicy:Never) in your yaml file
-        imagePullPolicy: Always
+        imagePullPolicy: Never
         envFrom:
           - configMapRef:
               name: flask
-        command: ["uwsgi", "--ini", "app.ini"]
-        #args: ["--ini", "/uwsgi.ini"]
+        command: ["uwsgi"]
+        args: ["--ini", "/uwsgi.ini"]
         ports:
         - containerPort: 8001
           name: http
           protocol: TCP
         volumeMounts:
-        # - name: uwsgi-config-volume
-        #   mountPath: /uwsgi.ini
-        #   subPath: uwsgi.ini
+        - name: uwsgi-config-volume
+          mountPath: /uwsgi.ini
+          subPath: uwsgi.ini
         - name: www-storage
-          mountPath: /app
+          mountPath: /app/public/
         livenessProbe:
           exec:
             command:
@@ -56,19 +56,18 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 5
       initContainers:
-      - name: npm
-        workingDir: /app
-        image: python:3.10
-        imagePullPolicy: Always
+      - name: npm        
+        image: wsgi:1.0.0
+        imagePullPolicy: Never
         volumeMounts:
-        - name: start-config-volume
-          mountPath: /start.sh
-          subPath: start.sh
+        # - name: start-config-volume
+        #   mountPath: /start.sh
+        #   subPath: start.sh
         - name: www-storage
           mountPath: /app/public
-        command:
-        - "bash"
-        - "/start.sh"
+        # command:
+        # - "bash"
+        # - "/start.sh"
                 
       restartPolicy: Always
       serviceAccountName: ""

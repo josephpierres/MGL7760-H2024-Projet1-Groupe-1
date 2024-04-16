@@ -1,0 +1,29 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: nginx-config
+  namespace: bbl
+data:
+  default.conf: |
+    #upstream flask-uwsgi {
+    #  server flask-uwsgi.default:8001;
+    #}
+    server {
+      listen 80 default_server;
+      listen [::]:80 default_server;
+      server_name localhost;
+      root /srv/app/public;
+      location / {
+        include uwsgi_params;
+        #uwsgi_pass unix:/tmp/uwsgi.socket;
+        uwsgi_pass 127.0.0.1:8001;
+
+        proxy_redirect off;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For
+        $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host $server_name;
+        #proxy_set_header X-Forwarded-Proto https;
+      }
+    }

@@ -44,16 +44,31 @@ data:
     #!/bin/bash
     shopt -s extglob 
     cd /app/
-    git clone -b projet3 https://github.com/josephpierres/MGL7760-H2024-Projet1-Groupe-1.git temp
-    mv temp/.git public/.git
-    rm -rf temp
-    
-    find ./public -mindepth 1 ! -regex '^./public/k8s/data/wsgi\(/.*\)?' -delete
-    cd /app/public   
-    #rm -rf !(k8s)
-    cp -r k8s/data/wsgi/* .
-    rm -rf k8s
-    shopt -u extglob    
+    rm -rf publics
+    git clone -b projet3 https://github.com/josephpierres/MGL7760-H2024-Projet1-Groupe-1.git /app/publics    
+    mv publics/k8s/data/wsgi public
+    rm -rf publics 
+    cd /app/public            
     /usr/bin/python3 -m venv .venv
     source .venv/bin/activate
+    pip install --upgrade pip
     pip install --no-cache-dir -r requirements.txt
+    shopt -u extglob 
+
+    #   #!/bin/bash #############################################
+    # shopt -s extglob 
+    # cd /app/
+    # rm -rf publics
+    # git clone -b projet3 https://github.com/josephpierres/MGL7760-H2024-Projet1-Groupe-1.git /app/publics
+    # #find ./publics -mindepth 1 ! -regex '^./publics/k8s/data/wsgi\(/.*\)?' -delete
+    # mv publics/k8s/data/wsgi public
+    # rm -rf publics 
+    # cd /app/public   
+    # # rm -rf !(k8s)
+    # # cp -r k8s/data/wsgi/* .
+    # # rm -rf k8s       
+    # /usr/bin/python3 -m venv .venv
+    # source .venv/bin/activate
+    # pip install --upgrade pip
+    # pip install --no-cache-dir -r requirements.txt
+    # shopt -u extglob 
