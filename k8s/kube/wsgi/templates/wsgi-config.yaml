@@ -9,7 +9,7 @@ data:
     #WSGI module and Callable app
     virtualenv = /srv/app/public/venv/
     chdir = /srv/app/public/
-    module = main
+    module = main:app
     callable = app
     plugins = python3
     #User ID for nginx config

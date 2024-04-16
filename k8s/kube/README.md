@@ -16,7 +16,15 @@ helm install -n bbl bbl-nginx ./nginx
 kubectl get pods -n bbl
 
 
+helm upgrade -n bbl bbl-wsgi ./wsgi
+
+
+helm upgrade -n bbl bbl-nginx ./nginx
+
+kubectl delete  configmap nginx-config -n bbl 
 helm delete bbl-nginx -n bbl
+
+
 helm delete bbl-wsgi -n bbl
 kubectl delete  pv app-pv -n bbl  
 kubectl delete  pvc app-pvc -n bbl 
@@ -43,7 +51,7 @@ kubectl exec -it -n bbl wsgi-biblio-55b9dc7f78-trmwt  -- /bin/bash
 
 kubectl run -it --rm --image=mysql:8.3 --restart=Never mysql-client -- mysql -h mysql -password="password"
 
-`` kubectl describe pod -n bbl wsgi-biblio-55b9dc7f78-gvgff  ``
+`` kubectl describe pod -n bbl nginx-biblio-64f6ff75fb-sv9bf  ``
 
 mysql -ppassword 
 use gestion_bibliotheque
@@ -59,9 +67,9 @@ kubectl describe pod -n bbl app
 image: repository:organization_name/image_name:image_version
 
 
-```   kubectl logs nginx-biblio-64f6ff75fb-xdm9g   -n bbl -p    ``
+```   kubectl logs nginx-biblio-64f6ff75fb-g8mf8   -n bbl -p    ``
 
-kubectl exec -it -n bbl wsgi-biblio-55b9dc7f78-trmwt -- /bin/bash
+kubectl exec -it -n bbl wsgi-biblio-55b9dc7f78-jx9l4 -- /bin/bash
 
 
 As the handbook describes, you can reuse the Docker daemon from Minikube with eval $(minikube docker-env).
@@ -103,3 +111,7 @@ kubectl run bbl-wsgi --image=wsgi:1.0.3 --image-pull-policy=Never
 kubectl get pods
 
 minikube service nginx-biblio-service -n bbl
+
+
+
+uwsgi --socket 0.0.0.0:8001 --protocol=http -w wsgi:main

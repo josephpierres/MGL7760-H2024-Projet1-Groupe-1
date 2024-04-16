@@ -6,7 +6,7 @@ metadata:
 data:
   default.conf: |
     #upstream flask-uwsgi {
-    #  server flask-uwsgi.default:8001;
+    #server flask-uwsgi.default:8001;
     #}
     server {
       listen 80 default_server;
@@ -16,8 +16,7 @@ data:
       location / {
         include uwsgi_params;
         #uwsgi_pass unix:/tmp/uwsgi.socket;
-        uwsgi_pass 127.0.0.1:8001;
-
+        uwsgi_pass 127.0.0.1:8001;        
         proxy_redirect off;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
