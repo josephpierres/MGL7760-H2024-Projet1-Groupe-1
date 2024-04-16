@@ -1,18 +1,18 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: wsgi-biblio-service
+  name: flask-uwsgi
   namespace: bbl
   labels:
     app: flaskapp
 spec:
   ports:
     - port: 8001
-      protocol: TCP
-      targetPort: 8001
-      nodePort: 30009
-  type: NodePort
+      # protocol: TCP
+      # targetPort: 8001
+      # nodePort: 30009
+  # type: NodePort
   selector:
     app: flaskapp
     tier: frontend
-  #clusterIP: None
+  clusterIP: None
