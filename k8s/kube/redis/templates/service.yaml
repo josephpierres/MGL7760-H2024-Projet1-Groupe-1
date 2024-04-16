@@ -8,11 +8,11 @@ metadata:
 spec:
   ports:
     - port: 6379
-      protocol: TCP
-      targetPort: 6379
-      nodePort: 30007
+      # protocol: TCP
+      # targetPort: 6379
+      # nodePort: 30007
   type: NodePort
   selector:
     app: flaskapp
     tier: redis
-  #clusterIP: None
+    clusterIP: None

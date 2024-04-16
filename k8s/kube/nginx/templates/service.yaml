@@ -6,13 +6,13 @@ metadata:
   labels:
     app: flaskapp
 spec:
-  
+  type: LoadBalancer
   selector:
     app: flaskapp
   ports:
   - port: 80
     protocol: TCP
     targetPort: 80
-    nodePort: 30002
-    name: http
-  type: NodePort
+  #   nodePort: 30002
+  #   name: http
+  # type: NodePort
