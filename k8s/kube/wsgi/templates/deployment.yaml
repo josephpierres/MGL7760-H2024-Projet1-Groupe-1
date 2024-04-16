@@ -23,8 +23,9 @@ spec:
     spec:
       containers:
       - name: flask-uwsgi
-        image: debuggerboy/uwsgi:v1.0.3
-        imagePullPolicy: Always
+        #image: debuggerboy/uwsgi:v1.0.3
+        image: wsgi:1.0.0
+        imagePullPolicy: IfNotPresent
         command: ["uwsgi"]
         args: ["--ini", "/uwsgi.ini"]
         ports:
@@ -40,8 +41,9 @@ spec:
      
       initContainers:
       - name: layering
-        image: debuggerboy/uwsgi:v1.0.3
-        imagePullPolicy: Always
+        #image: debuggerboy/uwsgi:v1.0.3
+        image: wsgi:1.0.0
+        imagePullPolicy: IfNotPresent
         volumeMounts:
         - name: start-config-volume
           mountPath: /start.sh

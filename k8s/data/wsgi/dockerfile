@@ -2,15 +2,13 @@
 FROM python:3.10
 
 # repertoire de travail à /app
-WORKDIR /app
+WORKDIR /srv/app/public
 
 # copier les conteuns du repertoire courrant dans le repertoire /app du conteneur
-ADD ./requirements.txt /app
+COPY . .
 
 # installer les dependances à Python
+RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
-
-#COPY . .
-# execute la commande d´execution de flask
 
 # CMD [ "uwsgi", "app.ini"]
