@@ -122,6 +122,6 @@ kubectl get pods
 
 minikube service flask-nginx -n bbl
 
- kubectl logs -f -n bbl flaskapp-697b788f8f-qmpcq
+ kubectl logs -f -n bbl flaskapp-7474979c4-lf97f
 
 uwsgi --socket 0.0.0.0:8002 --protocol=http -w wsgi:main
