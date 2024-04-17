@@ -5,7 +5,7 @@ from flask_redis import FlaskRedis
 from flask_caching import Cache
 from flask_wtf.csrf import CSRFProtect
 from config import ProductionConfig
-from models import db
+from biblio.models import db
 
 app = Flask(__name__)
 app.config.from_object(ProductionConfig)

@@ -12,6 +12,8 @@ These are the steps to create a MySQL instance inside Kubernetes
 kubectl -n bbl apply -k . 
 helm install -n bbl bbl-mysql ./mysql
 helm install -n bbl bbl-redis ./redis
+
+kubectl -n bbl apply -k . 
 helm install -n bbl bbl-wsgi ./wsgi
 kubectl get pods -n bbl
 helm install -n bbl bbl-nginx ./nginx
@@ -30,14 +32,17 @@ helm upgrade -n bbl bbl-nginx ./nginx
 
 helm delete bbl-nginx -n bbl
 helm delete bbl-wsgi -n bbl
-helm delete bbl-mysql -n bbl
-helm delete bbl-redis -n bbl
-kubectl delete  pvc mysql-pvc -n bbl  
+
 kubectl delete  configmap nginx-config -n bbl 
 kubectl delete  pvc app-pvc -n bbl 
 kubectl delete  sc app-sc -n bbl  
 kubectl delete  configmap uwsgi-config -n bbl
 kubectl delete  pv app-pv -n bbl
+
+
+helm delete bbl-mysql -n bbl
+helm delete bbl-redis -n bbl
+kubectl delete  pvc mysql-pvc -n bbl  
 kubectl delete  pv mysql-pv -n bbl   
 
 
@@ -122,6 +127,6 @@ kubectl get pods
 
 minikube service flask-nginx -n bbl
 
- kubectl logs -f -n bbl flaskapp-7474979c4-cv8tx
+ kubectl logs -f -n bbl flaskapp-7474979c4-bnhqg 
 
 uwsgi --socket 0.0.0.0:8002 --protocol=http -w wsgi:main
