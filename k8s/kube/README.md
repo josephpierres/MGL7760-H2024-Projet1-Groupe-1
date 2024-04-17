@@ -21,6 +21,8 @@ helm upgrade -n bbl bbl-wsgi ./wsgi
 
 helm upgrade -n bbl bbl-nginx ./nginx
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 kubectl delete  configmap nginx-config -n bbl 
 helm delete bbl-nginx -n bbl
 
@@ -70,7 +72,7 @@ image: repository:organization_name/image_name:image_version
 
 ```   kubectl logs nginx-biblio-64f6ff75fb-g8mf8   -n bbl -p    ``
 
-kubectl exec -it -n bbl nginx-biblio-64f6ff75fb-z6xzs -- /bin/bash
+kubectl exec -it -n bbl flaskapp-7ffd769fc9-mmzhd -- /bin/bash
 
 
 As the handbook describes, you can reuse the Docker daemon from Minikube with eval $(minikube docker-env).
@@ -111,8 +113,8 @@ kubectl run bbl-wsgi --image=wsgi:1.0.3 --image-pull-policy=Never
 # Check that it's running
 kubectl get pods
 
-minikube service nginx-biblio-service -n bbl
+minikube service flask-nginx -n bbl
 
- kubectl logs -f -n bbl nginx-biblio-64f6ff75fb-z6xzs
+ kubectl logs -f -n bbl flaskapp-7ffd769fc9-mmzhd
 
 uwsgi --socket 0.0.0.0:8001 --protocol=http -w wsgi:main
