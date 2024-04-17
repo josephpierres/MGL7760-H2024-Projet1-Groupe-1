@@ -2,20 +2,20 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: bbl
-  name: flask-mysql
+  name: mysql
   labels:
-    app: flaskapp
+    app: mysql
 spec:
   selector:
     matchLabels:
-      app: flaskapp
+      app: mysql
       tier: mysql
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        app: flaskapp
+        app: mysql
         tier: mysql
     spec:
       containers:

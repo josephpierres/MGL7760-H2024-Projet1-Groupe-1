@@ -1,14 +1,33 @@
 # utiliser l´image Python3.12.1 du conteneur
 FROM python:3.10
+# Step 2: Installer les Dependences pip and Python 
 
-# repertoire de travail à /app
+ENV PYTHONUNBUFFERED 1
+# Step 3: Creation d'un repertoire de travail
 WORKDIR /srv/app/public
 
 # copier les conteuns du repertoire courrant dans le repertoire /app du conteneur
-COPY . .
 
-# installer les dependances à Python
+RUN apt-get update && apt-get install -y python3
+RUN apt-get install -y python3-pip
+RUN apt-get install -y build-essential
+
+RUN apt-get install -y git
+
+RUN apt-get install -y gcc python3-dev
+RUN apt-get install -y libxml2-dev libxslt1-dev build-essential python3-lxml zlib1g-dev
+RUN apt-get install -y default-mysql-client default-libmysqlclient-dev
+RUN wget https://bootstrap.pypa.io/get-pip.py
+RUN python3 get-pip.py
+RUN rm get-pip.py
 RUN pip install --upgrade pip
+# installer les dependances à Python
+ADD ./requirements.txt /srv/app/public
 RUN pip install --no-cache-dir -r requirements.txt
 
-CMD [ "uwsgi", "uwsgi.ini"]
+COPY . .
+# execute la commande d´execution de flask
+# pour uwsgi
+# CMD [ "uwsgi", "--ini", "uwsgi.ini"] 
+# EXPOSE 5000
+# CMD [ "flask", "run","--host","0.0.0.0","--port","5000"]

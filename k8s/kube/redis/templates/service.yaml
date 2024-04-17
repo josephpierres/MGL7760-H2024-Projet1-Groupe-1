@@ -1,18 +1,19 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: redis-biblio-service
+  name: redis
   namespace: bbl
   labels:
-    app: flaskapp
+    app: redis
 spec:
+  type: ClusterIP
   ports:
     - port: 6379
-      # protocol: TCP
-      # targetPort: 6379
+      protocol: TCP
+      targetPort: 6379
       # nodePort: 30007
-  type: NodePort
+  #type: NodePort
   selector:
-    app: flaskapp
+    app: redis
     tier: redis
-    clusterIP: None
+    #clusterIP: None

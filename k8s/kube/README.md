@@ -23,13 +23,11 @@ helm upgrade -n bbl bbl-nginx ./nginx
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-kubectl delete  configmap nginx-config -n bbl 
+
 helm delete bbl-nginx -n bbl
-
-
 helm delete bbl-wsgi -n bbl
 kubectl delete  pv app-pv -n bbl  
-
+kubectl delete  configmap nginx-config -n bbl 
 kubectl delete  pvc app-pvc -n bbl 
 kubectl delete  sc app-sc -n bbl  
 kubectl delete  configmap uwsgi-config -n bbl   
@@ -39,6 +37,7 @@ helm upgrade -n bbl bbl-wsgi ./wsgi
 
 
 minikube service flask-nginx -n bbl
+
 
 
 accer au pod mysql
@@ -70,9 +69,9 @@ kubectl describe pod -n bbl app
 image: repository:organization_name/image_name:image_version
 
 
-```   kubectl logs nginx-biblio-64f6ff75fb-g8mf8   -n bbl -p    ``
+```   kubectl logs flaskapp-697b788f8f-t68kg   -n bbl -p    ``
 
-kubectl exec -it -n bbl flaskapp-7ffd769fc9-mmzhd -- /bin/bash
+kubectl exec -it -n bbl flask-nginx-f4b547456-rrdb9 -- /bin/bash
 
 
 As the handbook describes, you can reuse the Docker daemon from Minikube with eval $(minikube docker-env).
@@ -115,6 +114,6 @@ kubectl get pods
 
 minikube service flask-nginx -n bbl
 
- kubectl logs -f -n bbl flaskapp-7ffd769fc9-mmzhd
+ kubectl logs -f -n bbl flaskapp-697b788f8f-t68kg 
 
 uwsgi --socket 0.0.0.0:8001 --protocol=http -w wsgi:main

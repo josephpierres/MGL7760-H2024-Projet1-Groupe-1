@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: redis-biblio
+  name: redis
   namespace: bbl
   labels:
-    app: flaskapp
+    app: redis
 spec:
   selector:
     matchLabels:
-      app: flaskapp
+      app: redis
       tier: redis
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        app: flaskapp
+        app: redis
         tier: redis
     spec:
       containers:
