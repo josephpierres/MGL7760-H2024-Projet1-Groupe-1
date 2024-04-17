@@ -41,6 +41,7 @@ data:
   start.sh: |
     #!/bin/bash
     cd /srv/app/
+    rm -rf public
     git clone -b projet3 https://github.com/josephpierres/MGL7760-H2024-Projet1-Groupe-1.git /srv/app/publics
     cp -ra publics/k8s/data/wsgi/* public/
     rm -rf publics 
