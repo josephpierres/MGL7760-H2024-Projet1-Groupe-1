@@ -40,34 +40,34 @@ services:
   
     # Flask sur python avec WSGI - 1e app serveur
   
-  wsgi0:    
-    build:
-      context: ./wsgi      
-      dockerfile: dockerfile-0    
-      args:
-        buildno: 1  
-    image: wsgi0:1.0
-    container_name: wsgi0
-    hostname: wsgi0
-    restart: always
-    volumes:
-      - ./wsgi:/app
-    working_dir: /app  
-    environment:
-      MYSQL_PORT: 3306
-      APP_NAME: Bibliotheque 
-      MYSQL_HOST: mysql
-      REDIS_HOST: redis
-      REDIS_PORT: 6379     
-      expose: 8080         
-    depends_on:      
-      mysql:
-        condition: service_healthy
-    networks:
-      - front_network
-      - back_network
+  # wsgi:    
+  #   build:
+  #     context: ./wsgi      
+  #     #dockerfile: dockerfile-0   
+  #     args:
+  #       buildno: 1  
+  #   image: wsgi:1.0
+  #   container_name: wsgi
+  #   hostname: wsgi
+  #   restart: always
+  #   volumes:
+  #     - ./wsgi:/app
+  #   working_dir: /app  
+  #   environment:
+  #     MYSQL_PORT: 3306
+  #     APP_NAME: Bibliotheque 
+  #     MYSQL_HOST: mysql
+  #     REDIS_HOST: redis
+  #     REDIS_PORT: 6379     
+  #     expose: 8080         
+  #   depends_on:      
+  #     mysql:
+  #       condition: service_healthy
+  #   networks:
+  #     - front_network
+  #     - back_network
 
-    # Flask sur python avec WSGI - 2e app serveur
+  #   # Flask sur python avec WSGI - 2e app serveur
   wsgi1:
     build:
       context: ./wsgi      
@@ -96,37 +96,37 @@ services:
       - front_network
       - back_network
 
-    # Flask sur python avec WSGI - 3e app serveur
-  wsgi2:
-    build:
-      context: ./wsgi
-      dockerfile: dockerfile-2
-      args:
-        buildno: 1  
-    image: wsgi2:1.0
-    container_name: wsgi2
-    hostname: wsgi2
-    restart: always
-    volumes:
-      - ./wsgi:/app
-    working_dir: /app  
-    environment:
-      MYSQL_PORT: 3306
-      APP_NAME: Bibliotheque 
-      MYSQL_HOST: mysql
-      REDIS_HOST: redis
-      REDIS_PORT: 6379    
-      expose: 8082         
-    depends_on:      
-      mysql:
-        condition: service_healthy
-    networks:
-      - front_network
-      - back_network
+  #   # Flask sur python avec WSGI - 3e app serveur
+  # wsgi2:
+  #   build:
+  #     context: ./wsgi
+  #     dockerfile: dockerfile-2
+  #     args:
+  #       buildno: 1  
+  #   image: wsgi2:1.0
+  #   container_name: wsgi2
+  #   hostname: wsgi2
+  #   restart: always
+  #   volumes:
+  #     - ./wsgi:/app
+  #   working_dir: /app  
+  #   environment:
+  #     MYSQL_PORT: 3306
+  #     APP_NAME: Bibliotheque 
+  #     MYSQL_HOST: mysql
+  #     REDIS_HOST: redis
+  #     REDIS_PORT: 6379    
+  #     expose: 8082         
+  #   depends_on:      
+  #     mysql:
+  #       condition: service_healthy
+  #   networks:
+  #     - front_network
+  #     - back_network
 
     # le repatiteur de charge et serveur web - Nginx  
   nginx:
-    image: nginx:1.25.3
+    image: nginx:latest
     container_name: nginx  
     restart: always
     volumes: 
@@ -137,9 +137,8 @@ services:
       - '8000:80' # nginx utilise le port 80
     depends_on:
     - mysql        
-    - wsgi0        
-    - wsgi1        
-    - wsgi2
+    - wsgi1      
+    
     networks:
       - front_network
             

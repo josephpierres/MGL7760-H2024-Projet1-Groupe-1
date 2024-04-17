@@ -1,0 +1,12 @@
+# utiliser l´image Python3.12.1 du conteneur
+FROM python:3.10
+WORKDIR /app
+ARG name=defaultValue
+LABEL maintainer="Pierre JOSEPH <pierre@email.com>" \
+      version="1.0" \
+      description="du flask avec python"
+ADD ./requirements.txt /app
+# RUN pip install --upgrade pip
+# installer les dependances à Python
+RUN pip install --no-cache-dir -r requirements.txt
+CMD [ "uwsgi", "--ini", "app-0.ini"] 

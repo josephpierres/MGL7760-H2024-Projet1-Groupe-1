@@ -1,32 +1,27 @@
----
 apiVersion: apps/v1
 kind: Deployment
-metadata:
+metadata:  
   labels:
-    app: flaskapp
+    app: flask-nginx
     tier: frontend
-  name: web  
+  name: flask-nginx
   namespace: bbl
 spec:
   replicas: 1
-  progressDeadlineSeconds: 120
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 1
   selector:
     matchLabels:
-      app: flaskapp
-  
+      app: flask-nginx
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
-        app: flaskapp
+        app: flask-nginx
         tier: frontend
     spec:
-      containers:
+      containers:     
       - name: flask-nginx
-        image: nginx:latest
+        image: nginx:1.21.6
         imagePullPolicy: Always
         ports:
         - containerPort: 80
@@ -37,28 +32,15 @@ spec:
           mountPath: /etc/nginx/conf.d/default.conf
           subPath: default.conf
         - name: www-storage
-          mountPath: /app/public     
-        livenessProbe:
-          exec:
-            command:
-              - dir
-              - /app/public
-          initialDelaySeconds: 5
-          periodSeconds: 5
-        readinessProbe:
-          exec:
-            command:
-              - ls
-              - /app/public
-          initialDelaySeconds: 5
-          periodSeconds: 5
+          mountPath: /srv/app/
+      
       restartPolicy: Always
       serviceAccountName: ""
-      
       volumes:
       - name: www-storage
         persistentVolumeClaim:
-          claimName: flask-pv-claim      
+          claimName: app-pvc
+      
       - name: nginx-config-volume
         configMap:
           name: nginx-config

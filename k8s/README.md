@@ -7,13 +7,50 @@ These are the steps to create a MySQL instance inside Kubernetes
 # installation de redis
 ``helm install -n bbl bbl-redis ./redis``
 # installation de wsgi
-``helm install -n bbl bbl-wsgi ./wsgi``
-# installation de nginx
-``helm install -n bbl bbl-nginx ./nginx``
 
+
+kubectl -n bbl apply -k . 
+helm install -n bbl bbl-mysql ./mysql
+helm install -n bbl bbl-redis ./redis
+
+kubectl -n bbl apply -k . 
+helm install -n bbl bbl-wsgi ./wsgi
+kubectl get pods -n bbl
+helm install -n bbl bbl-nginx ./nginx
+kubectl get pods -n bbl
 
 
 minikube service flask-nginx -n bbl
+
+helm upgrade -n bbl bbl-wsgi ./wsgi
+
+
+helm upgrade -n bbl bbl-nginx ./nginx
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+helm delete bbl-nginx -n bbl
+helm delete bbl-wsgi -n bbl
+
+kubectl delete  configmap nginx-config -n bbl 
+kubectl delete  pvc app-pvc -n bbl 
+kubectl delete  sc app-sc -n bbl  
+kubectl delete  configmap uwsgi-config -n bbl
+kubectl delete  pv app-pv -n bbl
+
+
+helm delete bbl-mysql -n bbl
+helm delete bbl-redis -n bbl
+kubectl delete  pvc mysql-pvc -n bbl  
+kubectl delete  pv mysql-pv -n bbl   
+
+
+helm upgrade -n bbl bbl-wsgi ./wsgi
+
+
+minikube service flask-nginx -n bbl
+
 
 
 accer au pod mysql
@@ -25,29 +62,29 @@ Choisissez le nom du pod MySQL que vous souhaitez accéder.
 Utilisez la commande kubectl exec pour exécuter des commandes à l'intérieur du pod 
 
 
-kubectl exec -it -n bbl flask-mysql-6f645c778-jbln8  -- /bin/bash
+kubectl exec -it -n bbl flaskapp-697b788f8f-7l8qv   -- /bin/bash
 
 kubectl run -it --rm --image=mysql:8.3 --restart=Never mysql-client -- mysql -h mysql -password="password"
 
-`` kubectl describe pod -n bbl app-7b6b68ccb8-g67q7  ``
+`` kubectl describe pod -n bbl nginx-biblio-64f6ff75fb-cxz68  ``
 
 mysql -ppassword 
 use gestion_bibliotheque
 
-``  helm delete bbl-wsgi -n bbl    ``
+
 kubectl delete pv --all -n bbl
 kubectl delete pvc --all -n bbl
 kubectl delete sc --all -n bbl
 
 
-kubectl describe pod -n bbl app
+kubectl describe pod -n bbl flaskapp-7474979c4-59fms
 
 image: repository:organization_name/image_name:image_version
 
 
-```   kubectl logs app-79759d7c88-drnph  -n bbl -p    ``
+```   kubectl logs flaskapp-697b788f8f-t68kg   -n bbl -p    ``
 
-kubectl exec -it -n bbl web-bff778fb8-qcjps  -- /bin/bash
+kubectl exec -it -n bbl flaskapp-697b788f8f-qmpcq-- /bin/bash
 
 
 As the handbook describes, you can reuse the Docker daemon from Minikube with eval $(minikube docker-env).
@@ -70,8 +107,11 @@ eval $(minikube docker-env)             # Unix shells
 minikube docker-env | Invoke-Expression # PowerShell
 
 # Build image
-sudo docker build -t bbl-wsgi ./data/wsgi
-minikube image build -t biblio-wsgi:1.0.0 ./data/wsgi
+not good - sudo docker build -t bbl-wsgi ./data/wsgi
+
+### pour creer l'image que nous avons besoin dans minikube
+eval $(minikube docker-env)
+minikube image build -t biblio-wsgi:1.0.0 ./wsgi_i 
 
 # Load the image into Minikube
 minikube image load bbl-wsgi
@@ -85,6 +125,8 @@ kubectl run bbl-wsgi --image=wsgi:1.0.3 --image-pull-policy=Never
 # Check that it's running
 kubectl get pods
 
+minikube service flask-nginx -n bbl
 
-minikube service list
-minikube service nginx-service -n bbl
+ kubectl logs -f -n bbl flaskapp-7474979c4-vq5mq
+
+uwsgi --socket 0.0.0.0:8002 --protocol=http -w wsgi:main

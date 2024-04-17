@@ -1,17 +1,19 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: flask-redis
+  name: redis
   namespace: bbl
   labels:
-    app: flaskapp    
-    tier: redis
+    app: redis
 spec:
+ 
   ports:
     - port: 6379
       protocol: TCP
       targetPort: 6379
+      # nodePort: 30007
+  type: NodePort
   selector:
-    app: flaskapp    
+    app: redis
     tier: redis
-  clusterIP: None
+    #clusterIP: None

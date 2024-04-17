@@ -1,25 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: mysql-biblio
   namespace: bbl
-  name: mysql
   labels:
-    app: mysql
+    app: flaskapp
 spec:
   selector:
     matchLabels:
-      app: mysql
+      app: flaskapp
       tier: mysql
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        app: mysql
+        app: flaskapp
         tier: mysql
     spec:
       containers:
-      - image: mysql:8.3
+      - image: mysql:5.6
         name: mysql
         env:
         - name: MYSQL_DATABASE
@@ -34,10 +34,10 @@ spec:
         - containerPort: 3306
           name: mysql
         volumeMounts:
-            - name: mysql-persistent-storage
-              mountPath: /var/lib/mysql
-            - name: mysql-initdb
-              mountPath: /docker-entrypoint-initdb.d
+        - name: mysql-persistent-storage
+          mountPath: /var/lib/mysql
+        - name: mysql-initdb
+          mountPath: /docker-entrypoint-initdb.d
       volumes:
         - name: mysql-persistent-storage
           persistentVolumeClaim:
