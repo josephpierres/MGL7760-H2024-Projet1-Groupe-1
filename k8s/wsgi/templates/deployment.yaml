@@ -1,0 +1,65 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    name: flaskapp   
+    app: flaskapp
+    tier: frontend
+  name: flaskapp
+  namespace: bbl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flaskapp
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: flaskapp
+        tier: frontend
+    spec:
+      containers:
+      - name: flaskapp     
+        
+        image: biblio-wsgi:1.0.0
+        imagePullPolicy: IfNotPresent
+        command: ["uwsgi"]
+        args: ["--ini", "app-0.ini"]
+        ports:
+        - containerPort: 8080          
+        #volumeMounts:
+        # - name: uwsgi-config-volume
+        #   mountPath: /uwsgi.ini
+        #   subPath: uwsgi.ini
+        # - name: www-storage
+        #   mountPath: /app
+     
+      initContainers:
+      - name: layering        
+        image: biblio-wsgi:1.0.0
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - name: start-config-volume
+          mountPath: /start.sh
+          subPath: start.sh
+        - name: www-storage
+          mountPath: /app
+        command:
+        - "bash"
+        - "/start.sh"
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes:
+      - name: www-storage
+        persistentVolumeClaim:
+          claimName: app-pvc
+      - name: uwsgi-config-volume
+        configMap:
+          name: uwsgi-config
+      
+      - name: start-config-volume
+        configMap:
+          name: start-config
