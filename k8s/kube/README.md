@@ -16,6 +16,8 @@ helm install -n bbl bbl-nginx ./nginx
 kubectl get pods -n bbl
 
 
+minikube service flask-nginx -n bbl
+
 helm upgrade -n bbl bbl-wsgi ./wsgi
 
 
@@ -26,11 +28,15 @@ helm upgrade -n bbl bbl-nginx ./nginx
 
 helm delete bbl-nginx -n bbl
 helm delete bbl-wsgi -n bbl
-kubectl delete  pv app-pv -n bbl  
+helm delete bbl-mysql -n bbl
+helm delete bbl-redis -n bbl
+kubectl delete  pvc mysql-pvc -n bbl  
 kubectl delete  configmap nginx-config -n bbl 
 kubectl delete  pvc app-pvc -n bbl 
 kubectl delete  sc app-sc -n bbl  
-kubectl delete  configmap uwsgi-config -n bbl   
+kubectl delete  configmap uwsgi-config -n bbl
+kubectl delete  pv app-pv -n bbl
+kubectl delete  pv mysql-pv -n bbl   
 
 
 helm upgrade -n bbl bbl-wsgi ./wsgi
@@ -49,7 +55,7 @@ Choisissez le nom du pod MySQL que vous souhaitez accéder.
 Utilisez la commande kubectl exec pour exécuter des commandes à l'intérieur du pod 
 
 
-kubectl exec -it -n bbl flask-nginx-f4b547456-hzdvn  -- /bin/bash
+kubectl exec -it -n bbl flaskapp-697b788f8f-7l8qv   -- /bin/bash
 
 kubectl run -it --rm --image=mysql:8.3 --restart=Never mysql-client -- mysql -h mysql -password="password"
 
@@ -116,4 +122,4 @@ minikube service flask-nginx -n bbl
 
  kubectl logs -f -n bbl flaskapp-697b788f8f-t68kg 
 
-uwsgi --socket 0.0.0.0:8001 --protocol=http -w wsgi:main
+uwsgi --socket 0.0.0.0:8002 --protocol=http -w wsgi:main

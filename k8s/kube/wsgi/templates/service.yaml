@@ -6,15 +6,15 @@ metadata:
   labels:
     app: flaskapp
 spec:
-  type: ClusterIP
+  type: NodePort
   ports:
     - port: 8001
       protocol: TCP
       name: http
       targetPort: 8001
       # nodePort: 30009
-  # type: NodePort
+  
   selector:
     app: flaskapp
     tier: frontend
-  #clusterIP: None
+  

@@ -5,25 +5,73 @@ metadata:
   namespace: bbl
 data:
   default.conf: |
-    #upstream flask-uwsgi {
-    #  server flask-uwsgi.default:8001;
-    #}
-    server {
-      listen 80 default_server;
-      listen [::]:80 default_server;
-      server_name localhost;
-      root /srv/app/public;
-      location / {
-        include uwsgi_params;
-        #uwsgi_pass unix:/tmp/uwsgi.socket;
-        uwsgi_pass flaskapp:8001;
+    worker_processes 1;
 
-        proxy_redirect off;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For
-        $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Host $server_name;
-        #proxy_set_header X-Forwarded-Proto https;
+      events {
+
+          worker_connections 1024;
+
       }
-    }
+
+      http {
+
+          sendfile on;
+          
+          gzip              on;
+          gzip_http_version 1.0;
+          gzip_proxied      any;
+          gzip_min_length   500;
+          gzip_disable      "MSIE [1-6]\.";
+          gzip_types        text/plain text/xml text/css
+                            text/comma-separated-values
+                            text/javascript
+                            application/x-javascript
+                            application/atom+xml;
+
+          # Configuration containing list of application servers
+          upstream uwsgicluster {
+          
+              server 127.0.0.1:8001;
+              # server 127.0.0.1:8081;
+              # ..
+              # .
+          
+          }
+
+          # Configuration for Nginx
+          server {
+          
+              # Running port
+              listen 80;
+
+              # Settings to by-pass for static files 
+              location ^~ /static/  {
+              
+                  # Example:
+                  # root /full/path/to/application/static/file/dir;
+                  root srv/app/public/;
+              
+              }
+              
+              # Serve a static file (ex. favico) outside static dir.
+              location = /favico.ico  {
+              
+                  root /srv/app/public/favico.ico;
+              
+              }
+
+              # Proxying connections to application servers
+              location / {
+              
+                  include            uwsgi_params;
+                  uwsgi_pass         uwsgicluster;
+
+                  proxy_redirect     off;
+                  proxy_set_header   Host $host;
+                  proxy_set_header   X-Real-IP $remote_addr;
+                  proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header   X-Forwarded-Host $server_name;
+              
+              }
+          }
+      }
