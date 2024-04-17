@@ -10,6 +10,8 @@ These are the steps to create a MySQL instance inside Kubernetes
 
 
 kubectl -n bbl apply -k . 
+helm install -n bbl bbl-mysql ./mysql
+helm install -n bbl bbl-redis ./redis
 helm install -n bbl bbl-wsgi ./wsgi
 kubectl get pods -n bbl
 helm install -n bbl bbl-nginx ./nginx
@@ -77,7 +79,7 @@ image: repository:organization_name/image_name:image_version
 
 ```   kubectl logs flaskapp-697b788f8f-t68kg   -n bbl -p    ``
 
-kubectl exec -it -n bbl flask-nginx-f4b547456-rrdb9 -- /bin/bash
+kubectl exec -it -n bbl flaskapp-697b788f8f-qmpcq-- /bin/bash
 
 
 As the handbook describes, you can reuse the Docker daemon from Minikube with eval $(minikube docker-env).
@@ -100,7 +102,7 @@ eval $(minikube docker-env)             # Unix shells
 minikube docker-env | Invoke-Expression # PowerShell
 
 # Build image
-sudo docker build -t bbl-wsgi ./data/wsgi
+not good - sudo docker build -t bbl-wsgi ./data/wsgi
 
 ### pour creer l'image que nous avons besoin dans minikube
 eval $(minikube docker-env)
@@ -120,6 +122,6 @@ kubectl get pods
 
 minikube service flask-nginx -n bbl
 
- kubectl logs -f -n bbl flaskapp-697b788f8f-t68kg 
+ kubectl logs -f -n bbl flaskapp-697b788f8f-qmpcq
 
 uwsgi --socket 0.0.0.0:8002 --protocol=http -w wsgi:main
