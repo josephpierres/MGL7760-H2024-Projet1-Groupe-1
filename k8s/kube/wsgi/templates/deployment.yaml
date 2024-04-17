@@ -3,10 +3,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    name: wsgi-biblio    
+    name: flaskapp   
     app: flaskapp
     tier: frontend
-  name: wsgi-biblio
+  name: flaskapp
   namespace: bbl
 spec:
   replicas: 1
@@ -22,7 +22,7 @@ spec:
         tier: frontend
     spec:
       containers:
-      - name: flask-uwsgi
+      - name: flaskapp
         #image: debuggerboy/uwsgi:v1.0.3
         image: biblio-wsgi:1.0.0
         imagePullPolicy: IfNotPresent

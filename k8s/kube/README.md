@@ -27,6 +27,7 @@ helm delete bbl-nginx -n bbl
 
 helm delete bbl-wsgi -n bbl
 kubectl delete  pv app-pv -n bbl  
+
 kubectl delete  pvc app-pvc -n bbl 
 kubectl delete  sc app-sc -n bbl  
 kubectl delete  configmap uwsgi-config -n bbl   
@@ -47,11 +48,11 @@ Choisissez le nom du pod MySQL que vous souhaitez accéder.
 Utilisez la commande kubectl exec pour exécuter des commandes à l'intérieur du pod 
 
 
-kubectl exec -it -n bbl wsgi-biblio-55b9dc7f78-trmwt  -- /bin/bash
+kubectl exec -it -n bbl flask-nginx-f4b547456-hzdvn  -- /bin/bash
 
 kubectl run -it --rm --image=mysql:8.3 --restart=Never mysql-client -- mysql -h mysql -password="password"
 
-`` kubectl describe pod -n bbl nginx-biblio-64f6ff75fb-sv9bf  ``
+`` kubectl describe pod -n bbl nginx-biblio-64f6ff75fb-cxz68  ``
 
 mysql -ppassword 
 use gestion_bibliotheque
@@ -69,7 +70,7 @@ image: repository:organization_name/image_name:image_version
 
 ```   kubectl logs nginx-biblio-64f6ff75fb-g8mf8   -n bbl -p    ``
 
-kubectl exec -it -n bbl wsgi-biblio-55b9dc7f78-jx9l4 -- /bin/bash
+kubectl exec -it -n bbl nginx-biblio-64f6ff75fb-z6xzs -- /bin/bash
 
 
 As the handbook describes, you can reuse the Docker daemon from Minikube with eval $(minikube docker-env).
@@ -112,6 +113,6 @@ kubectl get pods
 
 minikube service nginx-biblio-service -n bbl
 
-
+ kubectl logs -f -n bbl nginx-biblio-64f6ff75fb-z6xzs
 
 uwsgi --socket 0.0.0.0:8001 --protocol=http -w wsgi:main

@@ -2,21 +2,21 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:  
   labels:
-    app: flaskapp
+    app: flask-nginx
     tier: frontend
-  name: nginx-biblio
+  name: flask-nginx
   namespace: bbl
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: flaskapp
+      app: flask-nginx
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        app: flaskapp
+        app: flask-nginx
         tier: frontend
     spec:
       containers:     
