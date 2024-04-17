@@ -27,15 +27,15 @@ spec:
         image: biblio-wsgi:1.0.0
         imagePullPolicy: IfNotPresent
         command: ["uwsgi"]
-        args: ["--ini", "/uwsgi.ini"]
+        args: ["--ini", "uwsgi.ini"]
         ports:
         - containerPort: 8001
           name: http
           protocol: TCP
         volumeMounts:
-        - name: uwsgi-config-volume
-          mountPath: /uwsgi.ini
-          subPath: uwsgi.ini
+        # - name: uwsgi-config-volume
+        #   mountPath: /uwsgi.ini
+        #   subPath: uwsgi.ini
         - name: www-storage
           mountPath: /srv/app/
      
