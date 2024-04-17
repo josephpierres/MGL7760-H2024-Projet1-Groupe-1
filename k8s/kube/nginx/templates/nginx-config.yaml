@@ -5,51 +5,61 @@ metadata:
   namespace: bbl
 data:
   default.conf: |
+        server {
+
+            listen 80;
+
+            location / {
+                include uwsgi_params;
+                uwsgi_pass flaskapp:8080;
+            }
+
+        }
    
-          # Configuration containing list of application servers
-          upstream uwsgicluster {
+        #   # Configuration containing list of application servers
+        #   upstream uwsgicluster {
           
-              server flaskapp:8001;
-              # server 127.0.0.1:8081;
-              # ..
-              # .
+        #       server flaskapp:8001;
+        #       # server 127.0.0.1:8081;
+        #       # ..
+        #       # .
           
-          }
+        #   }
 
-          # Configuration for Nginx
-          server {
+        #   # Configuration for Nginx
+        #   server {
           
-              # Running port
-              listen 80;
+        #       # Running port
+        #       listen 80;
 
-              # Settings to by-pass for static files 
-              location ^~ /static/  {
+        #       # Settings to by-pass for static files 
+        #       location ^~ /static/  {
               
-                  # Example:
-                  # root /full/path/to/application/static/file/dir;
-                  root srv/app/public/;
+        #           # Example:
+        #           # root /full/path/to/application/static/file/dir;
+        #           root srv/app/public/;
               
-              }
+        #       }
               
-              # Serve a static file (ex. favico) outside static dir.
-              location = /favico.ico  {
+        #       # Serve a static file (ex. favico) outside static dir.
+        #       location = /favico.ico  {
               
-                  root /srv/app/public/favico.ico;
+        #           root /srv/app/public/favico.ico;
               
-              }
+        #       }
 
-              # Proxying connections to application servers
-              location / {
+        #       # Proxying connections to application servers
+        #       location / {
               
-                  include            uwsgi_params;
-                  uwsgi_pass         uwsgicluster;
+        #           include            uwsgi_params;
+        #           uwsgi_pass         uwsgicluster;
 
-                  proxy_redirect     off;
-                  proxy_set_header   Host $host;
-                  proxy_set_header   X-Real-IP $remote_addr;
-                  proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
-                  proxy_set_header   X-Forwarded-Host $server_name;
+        #           proxy_redirect     off;
+        #           proxy_set_header   Host $host;
+        #           proxy_set_header   X-Real-IP $remote_addr;
+        #           proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+        #           proxy_set_header   X-Forwarded-Host $server_name;
               
-              }
-          }
+        #       }
+        #   }
       
