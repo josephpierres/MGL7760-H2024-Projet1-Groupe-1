@@ -72,7 +72,7 @@ kubectl delete pvc --all -n bbl
 kubectl delete sc --all -n bbl
 
 
-kubectl describe pod -n bbl app
+kubectl describe pod -n bbl flaskapp-7474979c4-59fms
 
 image: repository:organization_name/image_name:image_version
 
