@@ -66,7 +66,7 @@ kubectl exec -it -n bbl flaskapp-697b788f8f-7l8qv   -- /bin/bash
 
 kubectl run -it --rm --image=mysql:8.3 --restart=Never mysql-client -- mysql -h mysql -password="password"
 
-`` kubectl describe pod -n bbl nginx-biblio-64f6ff75fb-cxz68  ``
+`` kubectl describe pod -n bbl flaskapp-75d5b7c66b-lfqpt   ``
 
 mysql -ppassword 
 use gestion_bibliotheque
@@ -77,14 +77,14 @@ kubectl delete pvc --all -n bbl
 kubectl delete sc --all -n bbl
 
 
-kubectl describe pod -n bbl flaskapp-7474979c4-59fms
+kubectl describe pod -n bbl flaskapp-5b4bbf8f78-4g4wl 
 
 image: repository:organization_name/image_name:image_version
 
 
 ```   kubectl logs flaskapp-697b788f8f-t68kg   -n bbl -p    ``
 
-kubectl exec -it -n bbl flaskapp-697b788f8f-qmpcq-- /bin/bash
+kubectl exec -it -n bbl flask-nginx-f4b547456-5trzl -- /bin/bash
 
 
 As the handbook describes, you can reuse the Docker daemon from Minikube with eval $(minikube docker-env).
@@ -111,7 +111,7 @@ not good - sudo docker build -t bbl-wsgi ./data/wsgi
 
 ### pour creer l'image que nous avons besoin dans minikube
 eval $(minikube docker-env)
-minikube image build -t biblio-wsgi:1.0.0 ./wsgi_i 
+minikube image build -t biblio-wsgi:1.0.1 ./wsgi_i 
 
 # Load the image into Minikube
 minikube image load bbl-wsgi
