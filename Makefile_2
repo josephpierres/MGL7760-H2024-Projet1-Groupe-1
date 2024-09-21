@@ -35,6 +35,14 @@ run: ## build, start and run docker image
 	bash docker-mysql.sh
 	cd wsgi && flask run
 	# docker run -it --rm -dp 8080:80 -v "$(pwd)/configs:/etc/nginx/conf.d" --name biblio_nginx nginx
+deploy: ## deploy the app with helm "helm append"
+	deploy:
+	cd /k8s
+	
+	kubectl delete  configmap uwsgi-config -n bbl
+	kubectl delete  pv app-pv -n bbl
+	kubectl -n bbl apply -k . 
+	helm upgrade -n bbl bbl-wsgi ./wsgi
  
 
  

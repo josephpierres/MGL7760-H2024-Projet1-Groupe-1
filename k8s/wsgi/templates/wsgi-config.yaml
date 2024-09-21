@@ -4,12 +4,11 @@ metadata:
   name: uwsgi-config
   namespace: bbl
 data:
-  uwsgi.ini: |
-    [uwsgi]
-    #WSGI module and Callable app
-    virtualenv = /srv/app/public/venv/  
-    
-    wsgi-file = wsgi.py
+  app-0.ini: |
+    [uwsgi]    
+    virtualenv = /app/venv/
+    chdir = /app/     
+    module = run
     callable = app
     plugin = python
     # maximum number of worker processes
@@ -38,26 +37,11 @@ data:
     #!/bin/bash    
     #rm -rf public
     git clone -b projet3 https://github.com/josephpierres/MGL7760-H2024-Projet1-Groupe-1.git publics
-    cp -ra publics/wsgi/* app/
+    cp -ra publics/wsgi/* /app/
     rm -rf publics 
-    cd /app    
-    /usr/bin/python3 -m venv venv
-    source venv/bin/activate
-    pip install flask
-    pip install -r requirements.txt
-    
-
-   
-    # #!/bin/bash
-    # cd /srv/app/
-    # #rm -rf public
-    # git clone -b projet3 https://github.com/josephpierres/MGL7760-H2024-Projet1-Groupe-1.git /srv/app/publics
-    # cp -ra publics/k8s/data/wsgi/* public/
-    # rm -rf publics 
-    # cd /srv/app/public
-    # cp -ra wsgi/* .
-    # rm -rf wsgi  
-    # /usr/bin/python3 -m venv venv
-    # source venv/bin/activate
+    # cd /app    
+    # /usr/bin/python3 -m venv .venv
+    # source .venv/bin/activate
     # pip install flask
-    # pip install -r requirements.txt
+    # pip install -r requirements.txt     
+   

@@ -9,12 +9,11 @@ spec:
   type: NodePort
   ports:
     - port: 8080
-      protocol: TCP
-      name: "8080"
+      protocol: TCP      
       targetPort: 8080
-      # nodePort: 30009
+     
   
   selector:
     app: flaskapp
-    tier: frontend
+   
   
