@@ -38,48 +38,20 @@ services:
     networks:
       - back_network
   
-    # Flask sur python avec WSGI - 1e app serveur
+    # Flask sur python avec WSGI - l app serveur
   
-  # wsgi:    
-  #   build:
-  #     context: ./wsgi      
-  #     #dockerfile: dockerfile-0   
-  #     args:
-  #       buildno: 1  
-  #   image: wsgi:1.0
-  #   container_name: wsgi
-  #   hostname: wsgi
-  #   restart: always
-  #   volumes:
-  #     - ./wsgi:/app
-  #   working_dir: /app  
-  #   environment:
-  #     MYSQL_PORT: 3306
-  #     APP_NAME: Bibliotheque 
-  #     MYSQL_HOST: mysql
-  #     REDIS_HOST: redis
-  #     REDIS_PORT: 6379     
-  #     expose: 8080         
-  #   depends_on:      
-  #     mysql:
-  #       condition: service_healthy
-  #   networks:
-  #     - front_network
-  #     - back_network
-
-  #   # Flask sur python avec WSGI - 2e app serveur
-  wsgi1:
+  wsgi:
     build:
-      context: ./wsgi      
-      dockerfile: dockerfile-1
+      context: ./myapp      
+      dockerfile: dockerfile
       args:
         buildno: 1  
-    image: wsgi1:1.0  
-    container_name: wsgi1
-    hostname: wsgi1
+    image: wsgi:1.0  
+    container_name: myapp
+    hostname: wsgi
     restart: always
     volumes:
-      - ./wsgi:/app
+      - ./myapp:/app
     working_dir: /app  
     environment:
       MYSQL_PORT: 3306
@@ -96,33 +68,6 @@ services:
       - front_network
       - back_network
 
-  #   # Flask sur python avec WSGI - 3e app serveur
-  # wsgi2:
-  #   build:
-  #     context: ./wsgi
-  #     dockerfile: dockerfile-2
-  #     args:
-  #       buildno: 1  
-  #   image: wsgi2:1.0
-  #   container_name: wsgi2
-  #   hostname: wsgi2
-  #   restart: always
-  #   volumes:
-  #     - ./wsgi:/app
-  #   working_dir: /app  
-  #   environment:
-  #     MYSQL_PORT: 3306
-  #     APP_NAME: Bibliotheque 
-  #     MYSQL_HOST: mysql
-  #     REDIS_HOST: redis
-  #     REDIS_PORT: 6379    
-  #     expose: 8082         
-  #   depends_on:      
-  #     mysql:
-  #       condition: service_healthy
-  #   networks:
-  #     - front_network
-  #     - back_network
 
     # le repatiteur de charge et serveur web - Nginx  
   nginx:
