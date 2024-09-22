@@ -28,7 +28,7 @@ from opentelemetry.sdk.resources import Resource, SERVICE_INSTANCE_ID, SERVICE_N
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
 from opentelemetry.exporter.jaeger import JaegerExporter
-from opentelemetry.exporter.prometheus import PrometheusMetricsExporter
+# from opentelemetry.exporter.prometheus import PrometheusMetricsExporter
 from prometheus_client import start_http_server, Counter, Gauge
 
 # Configure logging to FluentD

@@ -1,4 +1,3 @@
-version: "5"
 services:
     # serveur de base de donnees Mysql
   mysql:
@@ -55,7 +54,7 @@ services:
       args:
         buildno: 1  
     image: wsgi:1.0  
-    container_name: myapp
+    container_name: wsgi
     hostname: wsgi
     restart: always
     volumes:
@@ -100,7 +99,7 @@ services:
     ports:
       - '8000:80' # nginx utilise le port 80
     depends_on:
-     - wsgi1      
+     - wsgi      
     logging:
       driver: "fluentd"
       options:
@@ -111,17 +110,19 @@ services:
             
   fluentd:
     image: fluent/fluentd:v1.11
+    container_name: fluentd
     ports:
       - "24224:24224"
       - "24224:24224/udp"
     volumes:
-      - ./fluentd/config/fluent.conf:/fluentd/etc/fluent.conf
+      - ./fluentd/configs/fluent.conf:/fluentd/etc/fluent.conf
     networks:
       - front_network
       - back_network
   
   jaeger:
     image: jaegertracing/all-in-one:latest
+    container_name: jaeger
     environment:
       COLLECTOR_ZIPKIN_HOST_PORT: 9411
       JAEGER_AGENT_HOST: jaeger
@@ -136,28 +137,28 @@ services:
       - 9411:9411 
     networks:
       - back_network
-  # grafana:
-  #   #image: grafana/grafana:10.0.3
-  #   build:
-  #     context: ./grafana
-  #   container_name: grafana
-  #   restart: unless-stopped
-  #   environment:
-  #    - GF_SERVER_ROOT_URL=http://my.grafana.server/
-  #    - GF_INSTALL_PLUGINS=grafana-clock-panel
-  #    - GF_SECURITY_ADMIN_USER=admin
-  #    - GF_SECURITY_ADMIN_PASSWORD=grafana
-  #   entrypoint:
-  #     - /usr/share/grafana/bin/grafana-server
-  #     - --homepath=/usr/share/grafana
-  #     - --config=/etc/grafana-config/grafana.ini
-  #   volumes:
-  #     - ./grafana/config:/etc/grafana-config
-  #     - ./grafana/datasources:/etc/grafana/provisioning/datasources
-  #     - ./grafana/dashboards-provisioning:/etc/grafana/provisioning/dashboards
-  #     - ./grafana/dashboards:/var/lib/grafana/dashboards
-  #   ports:
-  #    - '3000:3000'
+  grafana:
+    #image: grafana/grafana:10.0.3    
+    build:
+      context: ./grafana
+    container_name: grafana
+    restart: unless-stopped
+    environment:
+     - GF_SERVER_ROOT_URL=http://my.grafana.server/
+     - GF_INSTALL_PLUGINS=grafana-clock-panel
+     - GF_SECURITY_ADMIN_USER=admin
+     - GF_SECURITY_ADMIN_PASSWORD=grafana
+    entrypoint:
+      - /usr/share/grafana/bin/grafana-server
+      - --homepath=/usr/share/grafana
+      - --config=/etc/grafana-config/grafana.ini
+    volumes:
+      - ./grafana/config:/etc/grafana-config
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/dashboards-provisioning:/etc/grafana/provisioning/dashboards
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    ports:
+     - '3000:3000'
     
   # elasticsearch:
   #   profiles: [integrations,elasticsearch]
