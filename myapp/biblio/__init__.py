@@ -26,8 +26,11 @@ from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.resources import Resource, SERVICE_INSTANCE_ID, SERVICE_NAME, SERVICE_VERSION, PROCESS_PID
 from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
+from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter, SimpleSpanProcessor
+# je ne peux pas verifier si le trift est le bon
+# from opentelemetry.exporter.jaeger.thrift import JaegerExporter
 from opentelemetry.exporter.jaeger import JaegerExporter
+from opentelemetry.sdk.trace.sampling import StaticSampler, Decision
 # from opentelemetry.exporter.prometheus import PrometheusMetricsExporter
 from prometheus_client import start_http_server, Counter, Gauge
 
@@ -61,14 +64,36 @@ dictConfig(
 
 
 # OpenTelemetry Configuration
-resource = Resource(attributes={SERVICE_NAME: "biblio-backend"})
-trace.set_tracer_provider(TracerProvider(resource=resource))
+# resource = Resource(attributes={SERVICE_NAME: "biblio-backend"})
+# trace.set_tracer_provider(TracerProvider(resource=resource))
+trace.set_tracer_provider(
+TracerProvider(
+        resource=Resource.create({SERVICE_NAME: "biblio-backend"})
+    )
+)
 
 # Exporter for tracing with Jaeger
 jaeger_exporter = JaegerExporter(
-    agent_host_name="localhost", agent_port=6831
+    # configure agent
+    agent_host_name='localhost',
+    agent_port=6831,
+    # optional: configure also collector
+    # collector_endpoint='http://localhost:14268/api/traces?format=jaeger.thrift',
+    # username=xxxx, # optional
+    # password=xxxx, # optional
+    # max_tag_value_length=None # optional
 )
-trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(jaeger_exporter))
+
+
+# trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(jaeger_exporter))
+
+# Create a BatchSpanProcessor and add the exporter to it
+span_processor = BatchSpanProcessor(jaeger_exporter)
+
+# add to the tracer
+trace.get_tracer_provider().add_span_processor(span_processor)
+
+
 
 # Instrument Flask, SQLAlchemy, and Redis with OpenTelemetry
 FlaskInstrumentor().instrument_app(app)
@@ -98,4 +123,5 @@ with app.app_context():
 from . import routes, models
 
 # Log an example message to FluentD
+logging.basicConfig(level=logging.INFO)
 logging.info("Biblio application started successfully")

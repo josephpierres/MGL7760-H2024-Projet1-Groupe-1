@@ -2,7 +2,8 @@ services:
     # serveur de base de donnees Mysql
   mysql:
     image: mysql:8.0.22   
-    container_name: mysql    
+    container_name: mysql
+    command: --default-authentication-plugin=mysql_native_password    
     restart: always   
     ports:
       - '3306:3306'
@@ -20,7 +21,10 @@ services:
     #command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
   
     healthcheck:
-      test: ["CMD", "mysql", "-h", "localhost", "-u", "root", "-ppassword", "-e", "SELECT 1"]
+      #test: ["CMD", "mysql", "-h", "localhost", "-u", "root", "-ppassword", "-e", "SELECT 1"]
+      test: mysqladmin ping -h 127.0.0.1 -u root --password=$$MYSQL_ROOT_PASSWORD
+      start_period: 5s
+      interval: 5s
       timeout: 20s
       retries: 10
     networks:
@@ -116,15 +120,40 @@ services:
       - "24224:24224/udp"
     volumes:
       - ./fluentd/configs/fluent.conf:/fluentd/etc/fluent.conf
+    command: '-c /fluentd/etc/fluentd.conf -v'
+    environment:
+      LOKI_URL: http://loki:3100
+      LOKI_USERNAME:
+      LOKI_PASSWORD:
+    deploy:
+      mode: global
+    configs:
+      - source: loki_config
+        target: /fluentd/etc/loki/loki.conf
     networks:
       - front_network
       - back_network
-  
+
+  loki:
+    image: grafana/loki:2.8.3
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    environment:
+      - JAEGER_AGENT_HOST=jaeger
+      - JAEGER_AGENT_PORT=6831
+      - JAEGER_SAMPLER_TYPE=const
+      - JAEGER_SAMPLER_PARAM=1
+    logging:
+      driver: loki
+      options:
+        loki-url: 'http://localhost:3100/api/prom/push'
+
+
   jaeger:
     image: jaegertracing/all-in-one:latest
     container_name: jaeger
     environment:
-      COLLECTOR_ZIPKIN_HOST_PORT: 9411
       JAEGER_AGENT_HOST: jaeger
     ports:
       - 5775:5775/udp 
@@ -137,11 +166,24 @@ services:
       - 9411:9411 
     networks:
       - back_network
+    logging:
+      driver: loki
+      options:
+        loki-url: 'http://localhost:3100/api/prom/push'
+
+  otel-collector:
+    image: otel/opentelemetry-collector:latest
+    command: ['--config=/etc/otel-collector-config.yaml']
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    depends_on:
+      - jaeger
   grafana:
     #image: grafana/grafana:10.0.3    
     build:
       context: ./grafana
     container_name: grafana
+    
     restart: unless-stopped
     environment:
      - GF_SERVER_ROOT_URL=http://my.grafana.server/
@@ -159,7 +201,24 @@ services:
       - ./grafana/dashboards:/var/lib/grafana/dashboards
     ports:
      - '3000:3000'
-    
+    logging:
+      driver: loki
+      options:
+        loki-url: 'http://localhost:3100/api/prom/push'
+
+  hotrod:
+    image: jaegertracing/example-hotrod:latest
+    ports:
+      - '8080:8080'
+      - '8083:8083'
+    command: ["-m","prometheus","all"]
+    environment:
+      - JAEGER_AGENT_HOST=jaeger
+      - JAEGER_AGENT_PORT=6831
+    logging:
+      driver: loki
+      options:
+        loki-url: 'http://localhost:3100/api/prom/push'
   # elasticsearch:
   #   profiles: [integrations,elasticsearch]
   #   image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
@@ -182,7 +241,10 @@ services:
   #   volumes:
   #     - ./prometheus:/etc/prometheus
   #     - prom_data:/prometheus
-
+  #   logging:
+  #     driver: loki
+  #     options:
+  #       loki-url: 'http://localhost:3100/api/prom/push'
 networks:
   front_network:
     name: front_network

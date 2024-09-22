@@ -1,3 +1,11 @@
+OTEL_RESOURCE_ATTRIBUTES=service.name=flask-app \
+OTEL_EXPORTER_OTLP_ENDPOINT="https://ingest.{region}.signoz.cloud:443" \
+OTEL_EXPORTER_OTLP_HEADERS="signoz-access-token=SIGNOZ_INGESTION_KEY" \
+OTEL_EXPORTER_OTLP_PROTOCOL=grpc \
+opentelemetry-instrument python app.py
+
+
+
 python3 -m venv .venv 
 source ./.venv/bin/activate
 pip3 install -r requirements.txt

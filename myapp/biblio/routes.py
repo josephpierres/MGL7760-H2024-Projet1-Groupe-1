@@ -21,6 +21,7 @@ tracer = trace.get_tracer(__name__)
 #
 @app.route('/')
 def index():
+    logger.warning(" In index page")
     try:
         with tracer.start_as_current_span("index"):
             current_time = datetime.now().strftime("%d-%m-%Y")

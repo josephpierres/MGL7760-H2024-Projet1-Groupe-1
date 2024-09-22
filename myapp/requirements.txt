@@ -65,7 +65,7 @@ opentelemetry-exporter-jaeger
 opentelemetry-exporter-prometheus
 opentelemetry-instrumentation-sqlalchemy
 opentelemetry-instrumentation-redis
-
+opentelemetry-distro[otlp]
 # Prometheus Client for Metrics
 prometheus-client
 
