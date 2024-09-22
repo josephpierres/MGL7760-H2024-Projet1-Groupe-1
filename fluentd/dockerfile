@@ -1,0 +1,18 @@
+FROM fluent/fluentd:v1.10-1
+MAINTAINER Pierre Joseph <josephierres@hotmail.com>
+
+USER root
+ENV FLUENTD_CONF="fluent.conf"
+RUN apk add --no-cache --update --virtual .build-deps \
+        sudo build-base ruby-dev \
+ # customize following instruction as you wish
+ && sudo gem install fluent-plugin-elasticsearch \
+ && sudo gem sources --clear-all \
+ && apk del .build-deps \
+ && rm -rf /home/fluent/.gem/ruby/2.5.0/cache/*.gem
+
+COPY ./configs/fluent.conf /fluentd/etc/
+COPY entrypoint.sh /bin/
+
+USER fluent
+EXPOSE 24224 5140

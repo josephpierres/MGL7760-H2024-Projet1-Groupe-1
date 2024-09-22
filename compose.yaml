@@ -26,7 +26,11 @@ services:
       retries: 10
     networks:
       - back_network 
-
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: mysql
     # serveur de cache Regis
   redis:
     container_name: redis
@@ -37,7 +41,11 @@ services:
       - ./redis/data:/data
     networks:
       - back_network
-  
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: redis
     # Flask sur python avec WSGI - l app serveur
   
   wsgi:
@@ -54,20 +62,31 @@ services:
       - ./myapp:/app
     working_dir: /app  
     environment:
-      MYSQL_PORT: 3306
-      APP_NAME: Bibliotheque 
-      MYSQL_HOST: mysql
-      REDIS_HOST: redis
-      REDIS_PORT: 6379     
-      expose: 8081
+      - MYSQL_PORT = 3306
+      - FLASK_ENV = production
+      - APP_NAME = Bibliotheque 
+      - MYSQL_HOST = mysql
+      - REDIS_HOST = redis
+      - REDIS_PORT = 6379
+      - DATABASE_URL=mysql://pharma_user:pharma_password@mysql/pharmacy_management
+      - REDIS_URL=redis://redis:6379/0
+      - FLUENTD_HOST=fluentd     
+    expose: [8081]
       # command: sh -c "python3 manage.py"      
     depends_on:      
-      mysql:
-        condition: service_healthy
+    - redis
+    - fluentd
+    - mysql
+    #  condition: service_healthy       
+    
     networks:
       - front_network
       - back_network
-
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: biblio_app
 
     # le repatiteur de charge et serveur web - Nginx  
   nginx:
@@ -81,13 +100,88 @@ services:
     ports:
       - '8000:80' # nginx utilise le port 80
     depends_on:
-    - mysql        
-    - wsgi1      
-    
+     - wsgi1      
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: nginx
     networks:
       - front_network
             
-      
+  fluentd:
+    image: fluent/fluentd:v1.11
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+    volumes:
+      - ./fluentd/config/fluent.conf:/fluentd/etc/fluent.conf
+    networks:
+      - front_network
+      - back_network
+  
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    environment:
+      COLLECTOR_ZIPKIN_HOST_PORT: 9411
+      JAEGER_AGENT_HOST: jaeger
+    ports:
+      - 5775:5775/udp 
+      - 6831:6831/udp 
+      - 6832:6832/udp 
+      - 5778:5778 
+      - 16686:16686 
+      - 14268:14268 
+      - 14250:14250 
+      - 9411:9411 
+    networks:
+      - back_network
+  # grafana:
+  #   #image: grafana/grafana:10.0.3
+  #   build:
+  #     context: ./grafana
+  #   container_name: grafana
+  #   restart: unless-stopped
+  #   environment:
+  #    - GF_SERVER_ROOT_URL=http://my.grafana.server/
+  #    - GF_INSTALL_PLUGINS=grafana-clock-panel
+  #    - GF_SECURITY_ADMIN_USER=admin
+  #    - GF_SECURITY_ADMIN_PASSWORD=grafana
+  #   entrypoint:
+  #     - /usr/share/grafana/bin/grafana-server
+  #     - --homepath=/usr/share/grafana
+  #     - --config=/etc/grafana-config/grafana.ini
+  #   volumes:
+  #     - ./grafana/config:/etc/grafana-config
+  #     - ./grafana/datasources:/etc/grafana/provisioning/datasources
+  #     - ./grafana/dashboards-provisioning:/etc/grafana/provisioning/dashboards
+  #     - ./grafana/dashboards:/var/lib/grafana/dashboards
+  #   ports:
+  #    - '3000:3000'
+    
+  # elasticsearch:
+  #   profiles: [integrations,elasticsearch]
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+  #   environment:
+  #     - node.name=elasticsearch
+  #     - cluster.name=es-grafana-agent-cluster
+  #     - discovery.type=single-node
+  #   volumes:
+  #     - elasticsearch_data:/usr/share/elasticsearch/data
+  #   ports:
+  #     - "9200:9200"
+  # prometheus:
+  #   image: prom/prometheus
+  #   container_name: prometheus
+  #   command:
+  #     - '--config.file=/etc/prometheus/prometheus.yml'
+  #   ports:
+  #     - 9090:9090
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./prometheus:/etc/prometheus
+  #     - prom_data:/prometheus
+
 networks:
   front_network:
     name: front_network
@@ -99,7 +193,12 @@ networks:
 volumes:
   mysql:
     name: mysql_volume
-    driver: local    
+    driver: local 
+  elasticsearch_data:
+    driver: local
+  prom_data:
+  grafana_storage:
+    external: true   
 
 
     
