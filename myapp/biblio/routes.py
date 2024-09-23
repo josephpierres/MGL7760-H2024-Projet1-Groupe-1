@@ -1,20 +1,29 @@
-import logging
+# import logging
 from biblio.utilities import AuthorSearchForm, CategoryForm, TitleSearchForm
-from . import app, redis_client
+from . import app, redis_client, logger, tracer, meter
 from flask import render_template, request, jsonify, session
 from biblio.models import Auteur, Categorie, Livre
 from datetime import datetime
-from opentelemetry import trace
-from prometheus_client import Counter, Gauge
+# from opentelemetry import trace
+# from prometheus_client import start_http_server, Counter, Gauge
 
-# Initialisation du logger
-logger = logging.getLogger(__name__)
 
-# Prometheus metrics for request counting and latency
-request_counter = Counter("request_count", "Number of requests", ["method", "endpoint"])
-latency_gauge = Gauge("request_latency_seconds", "Request latency", ["endpoint"])
 
-tracer = trace.get_tracer(__name__)
+
+# # Prometheus metrics for request counting and latency
+# start_http_server(8000)  # Prometheus server on port 8000
+
+# request_counter = Counter("request_count", "Number of requests", ["method", "endpoint"])
+# latency_gauge = Gauge("request_latency_seconds", "Request latency", ["endpoint"])
+
+# OpenTelemetry metrics 
+request_counter = meter.create_counter(
+    name="requests",
+    description="number of requests",
+    unit="1",    
+)
+
+# request_gauge = meter.create_gauge(name, unit='', description='')
 
 #
 # Phase 1: Affichage de la date du jour avec le libelle Biblio
@@ -27,7 +36,7 @@ def index():
             current_time = datetime.now().strftime("%d-%m-%Y")
             redis_client.set('flask_key', current_time)
             value = redis_client.get('flask_key').decode('utf-8')
-            request_counter.labels(method=request.method, endpoint='/').inc()
+            request_counter.add(1)
             logger.info(f"Page d'accueil chargée avec la date {current_time}")
             return render_template('index.html', date_du_jour=value)
     except Exception as e:
@@ -73,7 +82,7 @@ def get_all_books():
         try:
             livres = Livre.query.all()
             livres_list = [livre_to_dict(livre) for livre in livres]
-            request_counter.labels(method=request.method, endpoint='/getAllBooks').inc()
+            request_counter.add(1)
             logger.info(f"{len(livres_list)} livres récupérés et affichés avec succès")
             return render_template('bootstrap_table.html', title='Liste des livres', data={'livres': livres_list})
         except Exception as e:

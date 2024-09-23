@@ -1,46 +1,23 @@
 receivers:
-  # Make sure to add the otlp receiver.
-  # This will open up the receiver on port 4317
   otlp:
     protocols:
       grpc:
-        endpoint: "0.0.0.0:4317"
-      http:
-  redis:
-    endpoint: "redis-server:6379"
-    collection_interval: 10s
-
+        endpoint: 0.0.0.0:4317
 processors:
 extensions:
   health_check: {}
-
 exporters:
-  jaeger:
-    endpoint: jaeger:14250
+  otlp:
+    endpoint: jaeger:4317
     tls:
       insecure: true
-  loki:
-    endpoint: "http://loki-nodeport.grafana-labs:3100/loki/api/v1/push"
-    tls:
-      insecure: true
+  prometheus:
+    endpoint: "0.0.0.0:9090"
 service:
-  # telemetry:
-  #   logs:
-  #     level: DEBUG
   pipelines:
     traces:
-      receivers: [otlp, jaeger]
-      processors: [batch]
-      exporters: [jaeger, otlp/uptrace]
+      receivers: [otlp]
+      exporters: [otlp]
     metrics:
       receivers: [otlp]
-      processors: [cumulativetodelta, batch]
-      exporters: [otlp/uptrace]
-    metrics/hostmetrics:
-      receivers: [hostmetrics, redis]
-      processors: [cumulativetodelta, batch, resourcedetection]
-      exporters: [otlp/uptrace]
-    logs:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [otlp/uptrace, loki]
+      exporters: [prometheus]

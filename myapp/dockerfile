@@ -25,4 +25,4 @@ COPY . .
 # execute la commande d´execution de flask
 #pour uwsgi
 
-CMD [ "uwsgi", "--ini", "app.ini"] 
+CMD [ "uwsgi", "--ini", "app.ini" ,"--uid", "www-data"] 
