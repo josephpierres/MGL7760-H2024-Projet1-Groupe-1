@@ -13,11 +13,16 @@ exporters:
       insecure: true
   prometheus:
     endpoint: "0.0.0.0:9090"
+  jaeger:
+    endpoint: "http://jaeger:14268/api/traces"
+  prometheus:
+    endpoint: "0.0.0.0:8888"
+
 service:
   pipelines:
     traces:
       receivers: [otlp]
-      exporters: [otlp]
+      exporters: [otlp, jaeger]
     metrics:
       receivers: [otlp]
-      exporters: [prometheus]
+      exporters: [otlp, prometheus]

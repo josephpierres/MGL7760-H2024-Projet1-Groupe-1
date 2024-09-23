@@ -5,7 +5,7 @@ from flask import render_template, request, jsonify, session
 from biblio.models import Auteur, Categorie, Livre
 from datetime import datetime
 # from opentelemetry import trace
-# from prometheus_client import start_http_server, Counter, Gauge
+# from prometheus_client import Counter, Gauge
 
 
 

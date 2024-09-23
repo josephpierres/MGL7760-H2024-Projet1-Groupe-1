@@ -29,11 +29,11 @@ services:
       retries: 10
     networks:
       - biblio_net 
-    # logging:
-    #   driver: "fluentd"
-    #   options:
-    #     fluentd-address: localhost:24224
-    #     tag: mysql
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: mysql
 
     
     # serveur de cache Regis
@@ -46,11 +46,12 @@ services:
       - ./redis/data:/data
     networks:
       - biblio_net
-    # logging:
-    #   driver: "fluentd"
-    #   options:
-    #     fluentd-address: localhost:24224
-    #     tag: redis
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: redis
+
     # Flask sur python avec WSGI - l app serveur
   
   wsgi:
@@ -67,44 +68,27 @@ services:
       - ./myapp:/app
     working_dir: /app  
     environment:
-      #S- OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://collector:4318/v1/traces
-      - OTEL_EXPORTER_OTLP_INSECURE=true
       - MYSQL_PORT = 3306
       - FLASK_ENV = production
-      - APP_NAME = Bibliotheque 
-      # - MYSQL_HOST = mysql
-      # - REDIS_HOST = redis
-      # - REDIS_PORT = 6379
-      # - DATABASE_URL=mysql://pharma_user:pharma_password@mysql/pharmacy_management
-      - REDIS_URL=redis://redis:6379/0
-      - FLUENTD_HOST=fluentd 
-      - JAEGER_SERVICE_NAME=biblio-backend 
-      - JAEGER_REPORTER_LOG_SPANS
-      - JAEGER_AGENT_HOST=jaeger
-      - JAEGER_AGENT_PORT=6831
-      - JAEGER_SAMPLER_TYPE=const
-      - JAEGER_SAMPLER_MANAGER_HOST_PORT=jaeger:5778
+      - APP_NAME = Bibliotheque       
+      - REDIS_URL=redis://redis:6379/0     
     expose: [8080]
       # command: sh -c "python3 manage.py"      
-    depends_on:      
-    - redis
-    #- fluentd
-    - mysql
-    #  condition: service_healthy 
-  #  logging:
-  #     driver: loki
-  #     options:
-  #       loki-url: 'http://localhost:3100/api/prom/push'      
-    
+    depends_on:
+      - mysql
+      - redis
+      - otel-collector
+      - prometheus
+      - grafana
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: wsgi     
     networks:
       - biblio_net
       
-    # logging:
-    #   driver: "fluentd"
-    #   options:
-    #     fluentd-address: localhost:24224
-    #     tag: biblio_app
+   
 
     # le repatiteur de charge et serveur web - Nginx  
   nginx:
@@ -124,83 +108,62 @@ services:
       - '8000:80' # nginx utilise le port 80
     depends_on:
      - wsgi      
-    # logging:
-    #   driver: "fluentd"
-    #   options:
-    #     fluentd-address: localhost:24224
-    #     tag: nginx
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: nginx
     networks:
       - biblio_net
             
-  # fluentd:
-  #   image: fluent/fluentd:v1.11
-  #   container_name: fluentd
-  #   ports:
-  #     - "24224:24224"
-  #     - "24224:24224/udp"
-  #   volumes:
-  #     - ./fluentd/configs/fluent.conf:/fluentd/etc/fluent.conf
-  #   command: '-c /fluentd/etc/fluentd.conf -v'
+  fluentd:
+    image: fluent/fluentd:v1.11
+    container_name: fluentd
+    hostname: fluentd
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+    volumes:
+      - ./fluentd/configs/fluent.conf:/fluentd/etc/fluent.conf
+    command: '-c /fluentd/etc/fluentd.conf -v'    
+    deploy:
+      mode: global    
+    networks:
+      - biblio_net
+
+
+  # jaeger:
+  #   image: jaegertracing/all-in-one:latest
+  #   container_name: jaeger
+  #   hostname: jaeger
+    
   #   environment:
-  #     LOKI_URL: http://loki:3100
-  #     LOKI_USERNAME:
-  #     LOKI_PASSWORD:
-  #   deploy:
-  #     mode: global
-  #   configs:
-  #     - source: loki_config
-  #       target: /fluentd/etc/loki/loki.conf
+  #     - JAEGER_AGENT_HOST= jaeger
+  #     - SPAN_STORAGE_TYPE=grpc
+  #     - LOG_LEVEL=info
+  #   ports:
+  #     - 5775:5775/udp 
+  #     - 6831:6831/udp # UDP port for Jaeger agent
+  #     - 6832:6832/udp 
+  #     - 5778:5778 
+  #     - 16686:16686  # Jaeger UI
+  #     - 14268:14268  # HTTP port for spans
+  #     - 14250:14250 
+  #     - 9411:9411
+  #     - 4317:4317 # OTLP receiver 
   #   networks:
   #     - biblio_net
-  #     
-
-  # loki:
-  #   image: grafana/loki:2.8.3
-  #   command: -config.file=/etc/loki/local-config.yaml
-  #   ports:
-  #     - "3100:3100"
-  #   environment:
-  #     - JAEGER_AGENT_HOST=jaeger
-  #     - JAEGER_AGENT_PORT=6831
-  #     - JAEGER_SAMPLER_TYPE=const
-  #     - JAEGER_SAMPLER_PARAM=1
-  #   logging:
-  #     driver: loki
-  #     options:
-  #       loki-url: 'http://localhost:3100/api/prom/push'
-
-
-  jaeger:
+  #   restart: on-failure
+  
+   jaeger:
     image: jaegertracing/all-in-one:latest
     container_name: jaeger
     hostname: jaeger
-    # command:
-    #  # - "--grpc-storage.server=jaeger-remote-storage:17271"
-    #   - "--collector.zipkin.host-port=:9411"
-    #   - "--log-level=debug"
-    #   - "--reporter.grpc.host-port=jaeger-collector:14250"
-    #   - "--reporter.grpc.retry.max=1000"
-    # environment:
-    #   - JAEGER_AGENT_HOST= jaeger
-    #   - SPAN_STORAGE_TYPE=grpc
-    #   - LOG_LEVEL=debug
     ports:
-      - 5775:5775/udp 
-      - 6831:6831/udp # UDP port for Jaeger agent
-      - 6832:6832/udp 
-      - 5778:5778 
-      - 16686:16686  # Jaeger UI
-      - 14268:14268  # HTTP port for spans
-      - 14250:14250 
-      - 9411:9411
-      - 4317:4317 # OTLP receiver 
+      - 6831:6831/udp
+      - 16686:16686
     networks:
       - biblio_net
-    restart: on-failure
-  #   logging:
-  #     driver: loki
-  #     options:
-  #       loki-url: 'http://localhost:3100/api/prom/push'
 
   otel-collector:
     container_name: collector
@@ -212,38 +175,43 @@ services:
       - jaeger
     networks:
       - biblio_net
-  #   logging:
-  #     driver: loki
-  #     options:
-  #       loki-url: 'http://localhost:3100/api/prom/push'
-  #
-  # grafana:
-  #   #image: grafana/grafana:latest   
-  #   build:
-  #     context: ./grafana
-  #   container_name: grafana    
-  #   restart: unless-stopped
-  #   environment:
-  #    - GF_SERVER_ROOT_URL=http://my.grafana.server/
-  #    - GF_INSTALL_PLUGINS=grafana-clock-panel
-  #    - GF_SECURITY_ADMIN_USER=admin
-  #    - GF_SECURITY_ADMIN_PASSWORD=grafana
-  #   entrypoint:
-  #     - /usr/share/grafana/bin/grafana-server
-  #     - --homepath=/usr/share/grafana
-  #     - --config=/etc/grafana-config/grafana.ini
-  #   volumes:
-  #     - ./grafana/configs/:/etc/grafana-config/
-  #     - ./grafana/datasources:/etc/grafana/provisioning/datasources
-  #     - ./grafana/dashboards-provisioning:/etc/grafana/provisioning/dashboards
-  #     - ./grafana/dashboards:/var/lib/grafana/dashboards
-  #   user: "472"
-  #   ports:
-  #    - '3000:3000'
-  #   logging:
-  #     driver: loki
-  #     options:
-  #       loki-url: 'http://localhost:3100/api/prom/push'
+    ports:
+        - "4317:4317"  # OTLP gRPC for traces
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - biblio_net
+
+
+  grafana:
+    #image: grafana/grafana:latest   
+    build:
+      context: ./grafana
+    container_name: grafana    
+    restart: unless-stopped
+    environment:
+     - GF_SERVER_ROOT_URL=http://my.grafana.server/
+     - GF_INSTALL_PLUGINS=grafana-clock-panel
+     - GF_SECURITY_ADMIN_USER=admin
+     - GF_SECURITY_ADMIN_PASSWORD=admin
+    entrypoint:
+      - /usr/share/grafana/bin/grafana-server
+      - --homepath=/usr/share/grafana
+      - --config=/etc/grafana-config/grafana.ini
+    volumes:
+      - ./grafana/configs/:/etc/grafana-config/
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/dashboards-provisioning:/etc/grafana/provisioning/dashboards
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    user: "472"
+    ports:
+     - '3000:3000'
+    
 
     
   # elasticsearch:
