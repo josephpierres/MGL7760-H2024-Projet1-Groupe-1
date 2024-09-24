@@ -2,17 +2,9 @@ receivers:
   otlp:
     protocols:
       grpc:
-        endpoint: 0.0.0.0:4317
-processors:
-extensions:
-  health_check: {}
+        endpoint: "0.0.0.0:4317"
+
 exporters:
-  otlp:
-    endpoint: jaeger:4317
-    tls:
-      insecure: true
-  prometheus:
-    endpoint: "0.0.0.0:9090"
   jaeger:
     endpoint: "http://jaeger:14268/api/traces"
   prometheus:
@@ -22,7 +14,7 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      exporters: [otlp, jaeger]
+      exporters: [jaeger]
     metrics:
       receivers: [otlp]
-      exporters: [otlp, prometheus]
+      exporters: [prometheus]

@@ -16,6 +16,8 @@ from datetime import datetime
 # request_counter = Counter("request_count", "Number of requests", ["method", "endpoint"])
 # latency_gauge = Gauge("request_latency_seconds", "Request latency", ["endpoint"])
 
+
+
 # OpenTelemetry metrics 
 request_counter = meter.create_counter(
     name="requests",

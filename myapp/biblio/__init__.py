@@ -50,7 +50,7 @@ from opentelemetry.instrumentation.flask import FlaskInstrumentor
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 from opentelemetry.instrumentation.redis import RedisInstrumentor
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.exporter.prometheus import PrometheusMetricsExporter
+from opentelemetry.exporter.prometheus import PrometheusMetricReader
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.sdk.resources import Resource
@@ -86,11 +86,16 @@ dictConfig({
     },
     "root": {"level": "DEBUG", "handlers": ["console", "fluentd"]},
 })
+# Service name is required for most backends
+resource = Resource(attributes={
+    SERVICE_NAME: "wsgi"
+})
+
 
 # OpenTelemetry configuration for tracing
 trace.set_tracer_provider(
     TracerProvider(
-        resource=Resource.create({"service.name": "wsgi"})
+        resource=resource  # Resource.create({"service.name": "wsgi"})
     )
 )
 
@@ -105,6 +110,14 @@ trace.get_tracer_provider().add_span_processor(span_processor)
 metrics.set_meter_provider(MeterProvider())
 exporter = PrometheusMetricsExporter()
 start_http_server(port=8000)  # Expose metrics on port 8000
+
+# Start Prometheus client
+start_http_server(port=9464, addr="localhost")
+# Initialize PrometheusMetricReader which pulls metrics from the SDK
+# on-demand to respond to scrape requests
+reader = PrometheusMetricReader()
+provider = MeterProvider(resource=resource, metric_readers=[reader])
+metrics.set_meter_provider(provider)
 
 
 #########################################################

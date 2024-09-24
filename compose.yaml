@@ -34,6 +34,8 @@ services:
       options:
         fluentd-address: localhost:24224
         tag: mysql
+    depends_on:
+      - fluentd
 
     
     # serveur de cache Regis
@@ -51,6 +53,8 @@ services:
       options:
         fluentd-address: localhost:24224
         tag: redis
+    depends_on:
+      - fluentd
 
     # Flask sur python avec WSGI - l app serveur
   
@@ -80,13 +84,14 @@ services:
       - otel-collector
       - prometheus
       - grafana
+      - fluentd
     logging:
       driver: "fluentd"
       options:
         fluentd-address: localhost:24224
         tag: wsgi     
     networks:
-      - biblio_net
+      - biblio_net    
       
    
 
@@ -107,7 +112,8 @@ services:
     ports:
       - '8000:80' # nginx utilise le port 80
     depends_on:
-     - wsgi      
+     - wsgi 
+     - fluentd     
     logging:
       driver: "fluentd"
       options:
@@ -121,8 +127,8 @@ services:
     container_name: fluentd
     hostname: fluentd
     ports:
-      - "24224:24224"
-      - "24224:24224/udp"
+      - 24224:24224
+      - 24224:24224/udp
     volumes:
       - ./fluentd/configs/fluent.conf:/fluentd/etc/fluent.conf
     command: '-c /fluentd/etc/fluentd.conf -v'    
@@ -155,7 +161,7 @@ services:
   #     - biblio_net
   #   restart: on-failure
   
-   jaeger:
+  jaeger:
     image: jaegertracing/all-in-one:latest
     container_name: jaeger
     hostname: jaeger
@@ -167,6 +173,7 @@ services:
 
   otel-collector:
     container_name: collector
+    hostname: collector
     image: otel/opentelemetry-collector:latest
     command: ['--config=/etc/otel-collector-config.yaml']
     volumes:
@@ -180,37 +187,40 @@ services:
 
   prometheus:
     image: prom/prometheus:latest
+    container_name: prometheus  
+    hostname: prometheus
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
     networks:
       - biblio_net
+    depends_on:
+      - fluentd
 
 
   grafana:
     #image: grafana/grafana:latest   
     build:
       context: ./grafana
-    container_name: grafana    
-    restart: unless-stopped
-    environment:
-     - GF_SERVER_ROOT_URL=http://my.grafana.server/
-     - GF_INSTALL_PLUGINS=grafana-clock-panel
-     - GF_SECURITY_ADMIN_USER=admin
-     - GF_SECURITY_ADMIN_PASSWORD=admin
-    entrypoint:
-      - /usr/share/grafana/bin/grafana-server
-      - --homepath=/usr/share/grafana
-      - --config=/etc/grafana-config/grafana.ini
-    volumes:
-      - ./grafana/configs/:/etc/grafana-config/
-      - ./grafana/datasources:/etc/grafana/provisioning/datasources
-      - ./grafana/dashboards-provisioning:/etc/grafana/provisioning/dashboards
-      - ./grafana/dashboards:/var/lib/grafana/dashboards
-    user: "472"
+    container_name: grafana  
+    hostname: grafana    
+    restart: unless-stopped     
     ports:
-     - '3000:3000'
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+      - jaeger
+      - fluentd
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - biblio_net
+   
+      
     
 
     
@@ -253,5 +263,5 @@ volumes:
   elasticsearch_data:
     driver: local
   prom_data:
-  grafana_storage:
+   grafana_data::
     external: true 
