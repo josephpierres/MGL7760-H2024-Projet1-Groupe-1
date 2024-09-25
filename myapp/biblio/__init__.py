@@ -156,11 +156,12 @@ logger = logging.getLogger(__name__)
 tracer = trace.get_tracer(__name__)
 meter = metrics.get_meter(__name__, True)
 
+
 # Instrument Flask, SQLAlchemy, and Redis with OpenTelemetry
 with app.app_context():
     try:
         # Instrumentation for Flask, SQLAlchemy, and Redis
-
+        FlaskInstrumentor().instrument(enable_commenter=True, commenter_options={})
         FlaskInstrumentor().instrument_app(app)
         SQLAlchemyInstrumentor().instrument(engine=db.engine)
         RedisInstrumentor().instrument()

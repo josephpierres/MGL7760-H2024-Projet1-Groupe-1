@@ -31,6 +31,7 @@ request_counter = meter.create_counter(
 # Phase 1: Affichage de la date du jour avec le libelle Biblio
 #
 @app.route('/')
+# @latency_gauge.trackInprogress()
 def index():
     logger.warning(" In index page")
     try:
