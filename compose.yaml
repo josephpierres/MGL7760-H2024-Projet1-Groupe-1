@@ -1,5 +1,6 @@
+
 services:
-    # serveur de base de donnees Mysql
+  # Serveur de base de données MySQL
   mysql:
     image: mysql:8.0.22   
     container_name: mysql
@@ -7,38 +8,27 @@ services:
     restart: always   
     ports:
       - '3306:3306'
-    expose:
-      - 3306
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: gestion_bibliotheque
       MYSQL_USER: myuser
       MYSQL_PASSWORD: mypassword
     volumes:
-      - ./mysql/db.sql/:/docker-entrypoint-initdb.d/db.sql
-      - ./mysql/app:/app/             # pour le fichier de configuration
-      - ./mysql/data:/var/lib/mysql   # les donnees que mysql generent
-    #command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
-  
+      - ./mysql/db.sql:/docker-entrypoint-initdb.d/db.sql
+      - ./mysql/app:/app
+      - ./mysql/data:/var/lib/mysql
     healthcheck:
-      #test: ["CMD", "mysql", "-h", "localhost", "-u", "root", "-ppassword", "-e", "SELECT 1"]
       test: mysqladmin ping -h 127.0.0.1 -u root --password=$$MYSQL_ROOT_PASSWORD
       start_period: 5s
       interval: 5s
       timeout: 20s
       retries: 10
     networks:
-      - biblio_net 
+      - biblio_net
     logging:
-      driver: "fluentd"
-      options:
-        fluentd-address: localhost:24224
-        tag: mysql
-    depends_on:
-      - fluentd
+      driver: "json-file"  # Utiliser le driver de log par défaut
 
-    
-    # serveur de cache Regis
+  # Serveur de cache Redis
   redis:
     container_name: redis
     image: redis:7.2.4    
@@ -49,219 +39,118 @@ services:
     networks:
       - biblio_net
     logging:
-      driver: "fluentd"
-      options:
-        fluentd-address: localhost:24224
-        tag: redis
-    depends_on:
-      - fluentd
+      driver: "json-file"  # Utiliser le driver de log par défaut
 
-    # Flask sur python avec WSGI - l app serveur
-  
+  # Application WSGI (Flask)
   wsgi:
     build:
-      context: ./myapp      
-      dockerfile: dockerfile
-      args:
-        buildno: 1  
-    image: wsgi:1.0  
+      context: ./myapp
+      dockerfile: Dockerfile
+    image: wsgi:1.0
     container_name: wsgi
-    hostname: wsgi
     restart: always
     volumes:
       - ./myapp:/app
-    working_dir: /app  
+    working_dir: /app
     environment:
-      - MYSQL_PORT = 3306
-      - FLASK_ENV = production
-      - APP_NAME = Bibliotheque       
-      - REDIS_URL=redis://redis:6379/0     
-    expose: [8080]
-      # command: sh -c "python3 manage.py"      
+      - MYSQL_PORT=3306
+      - FLASK_ENV=production
+      - APP_NAME=Bibliotheque
+      - REDIS_URL=redis://redis:6379/0      
+      
+    expose:
+      - 8080
+      - 5000
     depends_on:
       - mysql
       - redis
-      - otel-collector
-      - prometheus
-      - grafana
-      - fluentd
-    logging:
-      driver: "fluentd"
-      options:
-        fluentd-address: localhost:24224
-        tag: wsgi     
+      - otelcol
+   #   - prometheus
+   #  - grafana
     networks:
-      - biblio_net    
-      
-   
+      - biblio_net
+    logging:
+      driver: "json-file"
 
-    # le repatiteur de charge et serveur web - Nginx  
+  # Serveur Nginx
   nginx:
-    container_name: nginx
-    hostname: nginx
-    image: nginx:latest
     # build:
-    #   context: ./nginx      
-    #   dockerfile: dockerfile
-     
+    #     context: ./nginx
+    #     dockerfile: Dockerfile
+    container_name: nginx
+    image: nginx:latest
     restart: always
     volumes: 
-      - './nginx/configs/:/etc/nginx/conf.d/'
-      - './nginx/www:/var/www/html'    # si toutefois j'ai des statics files
-      - './nginx/log:/var/log/nginx/'
+      # - './nginx/configs/opentelemetry_module.conf:/etc/nginx/conf.d/opentelemetry_module.conf'
+      - './nginx/configs/default.conf:/etc/nginx/conf.d/default.conf'
+      - './nginx/www:/var/www/html'
+      - './nginx/log:/var/log/nginx'
     ports:
-      - '8000:80' # nginx utilise le port 80
+      - '8000:80'
     depends_on:
-     - wsgi 
-     - fluentd     
+      - wsgi
+    networks:
+      - biblio_net
     logging:
-      driver: "fluentd"
-      options:
-        fluentd-address: localhost:24224
-        tag: nginx
-    networks:
-      - biblio_net
-            
-  fluentd:
-    image: fluent/fluentd:v1.11
-    container_name: fluentd
-    hostname: fluentd
-    ports:
-      - 24224:24224
-      - 24224:24224/udp
+      driver: "json-file"
+
+  # OpenTelemetry Collector
+  otelcol:
+    container_name: otelcol
+    image: otel/opentelemetry-collector:latest   
     volumes:
-      - ./fluentd/configs/fluent.conf:/fluentd/etc/fluent.conf
-    command: '-c /fluentd/etc/fluentd.conf -v'    
-    deploy:
-      mode: global    
+      - ./otel-collector/configs/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
+    
+    ports:
+      - "4317:4317"  # OTLP gRPC for traces 
+      - "4318:4318" # Default endpoint for OpenTelemetry receiver.
+      - "4318:4318/udp"
+      - "55679:55679" # Default endpoint for ZPages.
+      - "14250:14250" # Default endpoint for Jaeger gRPC receiver.
+      - "14268:14268" # Default endpoint for Jaeger HTTP receiver.
+      - "9411:9411"   # Default endpoint for Zipkin receiver.     
+      - "1888:1888"   # pprof extension
+      - "8888:8888"   # Prometheus metrics exposed by the collector
+      - "8889:8889"   # Prometheus exporter metrics
+      - "13133:13133" # health_check extension
     networks:
       - biblio_net
 
-
-  # jaeger:
-  #   image: jaegertracing/all-in-one:latest
-  #   container_name: jaeger
-  #   hostname: jaeger
-    
-  #   environment:
-  #     - JAEGER_AGENT_HOST= jaeger
-  #     - SPAN_STORAGE_TYPE=grpc
-  #     - LOG_LEVEL=info
+  # # Serveur Grafana
+  # grafana:
+  #   build:
+  #     context: ./grafana
+  #   container_name: grafana  
+  #   restart: unless-stopped
   #   ports:
-  #     - 5775:5775/udp 
-  #     - 6831:6831/udp # UDP port for Jaeger agent
-  #     - 6832:6832/udp 
-  #     - 5778:5778 
-  #     - 16686:16686  # Jaeger UI
-  #     - 14268:14268  # HTTP port for spans
-  #     - 14250:14250 
-  #     - 9411:9411
-  #     - 4317:4317 # OTLP receiver 
+  #     - "3000:3000"
+  #   volumes:
+  #     - grafana_data:/var/lib/grafana
+  #   depends_on:
+  #     - prometheus
+  #   environment:
+  #     GF_SECURITY_ADMIN_USER: admin
+  #     GF_SECURITY_ADMIN_PASSWORD: admin
   #   networks:
   #     - biblio_net
-  #   restart: on-failure
-  
-  jaeger:
-    image: jaegertracing/all-in-one:latest
-    container_name: jaeger
-    hostname: jaeger
-    ports:
-      - 6831:6831/udp
-      - 16686:16686
-    networks:
-      - biblio_net
 
-  otel-collector:
-    container_name: collector
-    hostname: collector
-    image: otel/opentelemetry-collector:latest
-    command: ['--config=/etc/otel-collector-config.yaml']
-    volumes:
-      - ./otel-collector/configs/otel-collector-config.yaml:/etc/otel-collector-config.yaml
-    depends_on:
-      - jaeger
-    networks:
-      - biblio_net
-    ports:
-        - "4317:4317"  # OTLP gRPC for traces
-
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus  
-    hostname: prometheus
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-    ports:
-      - "9090:9090"
-    networks:
-      - biblio_net
-    depends_on:
-      - fluentd
-
-
-  grafana:
-    #image: grafana/grafana:latest   
-    build:
-      context: ./grafana
-    container_name: grafana  
-    hostname: grafana    
-    restart: unless-stopped     
-    ports:
-      - "3000:3000"
-    volumes:
-      - grafana_data:/var/lib/grafana
-    depends_on:
-      - prometheus
-      - jaeger
-      - fluentd
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    networks:
-      - biblio_net
-   
-      
-    
-
-    
-  # elasticsearch:
-  #   profiles: [integrations,elasticsearch]
-  #   image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
-  #   environment:
-  #     - node.name=elasticsearch
-  #     - cluster.name=es-grafana-agent-cluster
-  #     - discovery.type=single-node
-  #   volumes:
-  #     - elasticsearch_data:/usr/share/elasticsearch/data
-  #   ports:
-  #     - "9200:9200"
+  # # Serveur Prometheus
   # prometheus:
-  #   image: prom/prometheus
+  #   image: prom/prometheus:latest
   #   container_name: prometheus
-  #   command:
-  #     - '--config.file=/etc/prometheus/prometheus.yml'
-  #   ports:
-  #     - 9090:9090
-  #   restart: unless-stopped
+  #   restart: always
   #   volumes:
-  #     - ./prometheus:/etc/prometheus
-  #     - prom_data:/prometheus
-  #   logging:
-  #     driver: loki
-  #     options:
-  #       loki-url: 'http://localhost:3100/api/prom/push'
+  #     - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+  #   ports:
+  #     - "9090:9090"
+  #   networks:
+  #     - biblio_net
+
 networks:
   biblio_net:
     name: biblio_net
     driver: bridge
-       
-   
+
 volumes:
-  mysql:
-    name: mysql_volume
-    driver: local 
-  elasticsearch_data:
-    driver: local
-  prom_data:
-   grafana_data::
-    external: true 
+  grafana_data: {}
+    
