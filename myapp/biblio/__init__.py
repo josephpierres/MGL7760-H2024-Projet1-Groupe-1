@@ -157,20 +157,26 @@ from flask_redis import FlaskRedis
 from flask_wtf.csrf import CSRFProtect
 from config import ProductionConfig
 
-
+from opentelemetry.instrumentation.wsgi import collect_request_attributes
 from opentelemetry.sdk.resources import Resource
+from opentelemetry.propagate import extract
 
 # Import exporters
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
-from opentelemetry.exporter.otlp.proto.grpc._log_exporter import ( OTLPLogExporter,)
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
+from opentelemetry.exporter.otlp.proto.http._log_exporter import ( OTLPLogExporter,)
 
 
 # Trace imports
 from opentelemetry import trace
-from opentelemetry.trace import set_tracer_provider, get_tracer_provider
+from opentelemetry.trace import ( 
+    SpanKind, set_tracer_provider, get_tracer_provider
+    )
 from opentelemetry.sdk.trace import TracerProvider, sampling
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.sdk.trace.export import (
+    BatchSpanProcessor,
+    ConsoleSpanExporter,
+)
 
 # Metric imports
 from opentelemetry import metrics as metrics
@@ -192,8 +198,8 @@ from opentelemetry.instrumentation.requests import RequestsInstrumentor
 
 resource = Resource.create(
         {
-            "service.name": "demo-dice",
-            "service.instance.id": "demo-dice",
+            "service.name": "biblio-mgmt",
+            "service.instance.id": "biblio-mgmt",
         }
     )
 
@@ -205,7 +211,9 @@ logger_provider = LoggerProvider(resource=resource)
 
 set_logger_provider(logger_provider)
 
-log_exporter = OTLPLogExporter(endpoint=os.getenv("OTLP_ENDPOINT", "localhost:4317"), insecure=json.loads(os.getenv("INSECURE", "true").lower()))
+log_exporter = OTLPLogExporter() 
+    #endpoint=os.getenv("OTLP_ENDPOINT", "localhost:4317/v1/logs"), 
+    # insecure=json.loads(os.getenv("INSECURE", "true").lower()))
 
 # add the batch processors to the trace provider
 logger_provider.add_log_record_processor(BatchLogRecordProcessor(log_exporter))
@@ -225,28 +233,32 @@ tracer_provider = TracerProvider(resource=resource)
 # set the providers
 set_tracer_provider(tracer_provider)
 
-trace_exporter = OTLPSpanExporter(
-    endpoint=os.getenv("OTLP_ENDPOINT", "http://otelcol:4317"), 
-   # insecure=json.loads(os.getenv("INSECURE", "true").lower()),
-    )
+trace_exporter = OTLPSpanExporter()
+    # endpoint=os.getenv("OTLP_ENDPOINT", "http://otelcol:4317/v1/traces"), 
+   # insecure=json.loads(os.getenv("INSECURE", "true").lower()), )
 
 span = BatchSpanProcessor(trace_exporter)
 tracer_provider.add_span_processor(span)
 
-tracer = get_tracer_provider().get_tracer("my-tracer")
+tracer = get_tracer_provider().get_tracer(__name__)
+
+# get_tracer_provider().add_span_processor(
+#     BatchSpanProcessor(ConsoleSpanExporter())
+# )
 
 # create the metric providers *****************
 
-exporter = OTLPMetricExporter( endpoint=os.getenv("OTLP_ENDPOINT", "localhost:4318"), 
-                              insecure=json.loads(os.getenv("INSECURE", "true").lower()),
-                              preferred_temporality = {
-                                    Counter: AggregationTemporality.DELTA,
-                                    UpDownCounter: AggregationTemporality.CUMULATIVE,
-                                    Histogram: AggregationTemporality.DELTA,
-                                    ObservableCounter: AggregationTemporality.DELTA,
-                                    ObservableUpDownCounter: AggregationTemporality.CUMULATIVE,
-                                }
-                            )
+exporter = OTLPMetricExporter() 
+    # endpoint=os.getenv("OTLP_ENDPOINT", "localhost:4318"), 
+    #                           insecure=json.loads(os.getenv("INSECURE", "true").lower()),
+    #                           preferred_temporality = {
+    #                                 Counter: AggregationTemporality.DELTA,
+    #                                 UpDownCounter: AggregationTemporality.CUMULATIVE,
+    #                                 Histogram: AggregationTemporality.DELTA,
+    #                                 ObservableCounter: AggregationTemporality.DELTA,
+    #                                 ObservableUpDownCounter: AggregationTemporality.CUMULATIVE,
+    #                             }
+    #                         )
 reader = PeriodicExportingMetricReader(exporter)
 provider = MeterProvider(metric_readers=[reader], resource=resource)
 set_meter_provider(provider)
@@ -261,36 +273,61 @@ csrf = CSRFProtect(app)
 db = SQLAlchemy(app)
 redis_client = FlaskRedis(app)
 
+
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+meter = metrics.get_meter(__name__)
+
+
+
+
+
+
 with app.app_context():
-    # # Instrument Flask, SQLAlchemy, and Redis with OpenTelemetry
-    # FlaskInstrumentor().instrument_app(app)
-    # SQLAlchemyInstrumentor().instrument(engine=db.engine)
-    # RedisInstrumentor().instrument()
-    # RequestsInstrumentor().instrument()     
+    # Instrument Flask, SQLAlchemy, and Redis with OpenTelemetry
+    FlaskInstrumentor().instrument_app(app)
+    SQLAlchemyInstrumentor().instrument(engine=db.engine)
+    RedisInstrumentor().instrument()
+    RequestsInstrumentor().instrument()     
     # Check if the connection is successfully established or not
 
     try:
         db.session.execute(text('SELECT 1'))
         print('\n---****** Connexion à MySQL réussie ******')
+        logger.info("****** Connexion à MySQL réussie ******'")
     except Exception as e:
         print('\n----------- Connexion échouée ! ERROR : ', e)
 
 # Routes and Models import
-from . import routes, models
+# from . import routes, models
 
-# @app.route("/rolldice")
-# def roll_dice():
-#     final_roll = str(do_roll())
-#     args = request.args
-#     user = args.get('user',  "anonymous")
-#     logger2.info("completed request for user: " + user + "with dice roll of: " + final_roll, extra={"method": "GET", "status": 200, "level": "info"})
+@app.route("/server_request")
+def server_request():
+    with tracer.start_as_current_span(
+        "server_request",
+        context=extract(request.headers),
+        kind=SpanKind.SERVER,
+        attributes=collect_request_attributes(request.environ),
+    ):
+        print(request.args.get("param"))
+        return "served"
 
-#     return final_roll
+@app.route('/')
+def index():
+    final_roll = str(do_roll())
+    args = request.args
+    user = args.get('user',  "anonymous")
+    logger.info("completed request for user: " + user + "with dice roll of: " + final_roll, extra={"method": "GET", "status": 200, "level": "info"})
 
-# def do_roll():
-#     return randint(1, 6)
+    return final_roll
 
-# # driver function
-# if __name__ == '__main__':
-#     app.run(host='0.0.0.0', port=5002)
-#     logger_provider.shutdown()
+def do_roll():
+    return randint(1, 6)
+
+# driver function
+if __name__ == '__main__':
+    app.run(host='0.0.0.0')
+    # logger_provider.shutdown()

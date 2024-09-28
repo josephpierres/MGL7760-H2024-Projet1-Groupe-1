@@ -25,4 +25,5 @@ COPY . .
 # execute la commande d´execution de flask
 #pour uwsgi
 
+# CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0"]
 CMD [ "uwsgi", "--ini", "app.ini" ,"--uid", "www-data"] 
