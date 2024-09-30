@@ -6,12 +6,35 @@ receivers:
       http:
         endpoint: 0.0.0.0:4318
         cors:      #j'ai vu des miseres `a cause de cela`
-          allowed_origins:
+          allowed_origins: ['*']  # Autorise toutes les origines pour CORS, peut être modifié pour plus de sécurité
+
+  jaeger:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:14250
+      thrift_http:
+        endpoint: 0.0.0.0:14268/api/traces
+
+processors:
+  batch:
+    timeout: 10s
+  memory_limiter:
+    limit_mib: 4000
+    spike_limit_mib: 500
+    check_interval: 1s
+
 exporters:
+  jaeger:
+    endpoint: "jaeger:14250"
+    tls:
+      insecure: true
   prometheus:
     endpoint: "0.0.0.0:8889"
+    namespace: "biblio"
   loki:
     endpoint: "http://loki:3100/loki/api/v1/push"
+    labels:
+      job: "otelcol"
   logging:
     loglevel: debug
 
@@ -24,14 +47,14 @@ service:
   extensions: [health_check]
   pipelines:
     traces:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [logging]
+      receivers: [otlp, jaeger]
+      processors: [memory_limiter, batch]
+      exporters: [jaeger, logging]
     metrics:
       receivers: [otlp]
       processors: [batch]
-      exporters: [prometheus]
+      exporters: [prometheus, logging]
     logs:
       receivers: [otlp]
       processors: [batch]
-      exporters: [loki]
+      exporters: [loki, logging]
