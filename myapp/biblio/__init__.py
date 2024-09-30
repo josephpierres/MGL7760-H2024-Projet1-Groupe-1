@@ -1,151 +1,3 @@
-# import datetime
-# import logging
-# from flask import Flask
-# from flask_sqlalchemy import SQLAlchemy
-# from sqlalchemy import text
-# from flask_redis import FlaskRedis
-# from flask_wtf.csrf import CSRFProtect
-# from config import ProductionConfig
-
-# # OpenTelemetry imports
-# from opentelemetry import trace, metrics
-# from opentelemetry.sdk.resources import Resource
-# from opentelemetry.sdk.trace import TracerProvider
-
-# from opentelemetry.sdk.metrics import MeterProvider
-# from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
-# from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-# from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
-
-# from opentelemetry._logs import set_logger_provider
-
-
-# from opentelemetry.exporter.otlp.proto.grpc._log_exporter import (
-#     OTLPLogExporter,
-# )
-# from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
-# from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
-
-
-# from opentelemetry.sdk.trace.export import (
-#     BatchSpanProcessor,
-#     ConsoleSpanExporter,
-# )
-# from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
-# from opentelemetry.instrumentation.flask import FlaskInstrumentor
-# from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
-# from opentelemetry.instrumentation.redis import RedisInstrumentor
-from opentelemetry.instrumentation.requests import RequestsInstrumentor
-
-# from pythonjsonlogger import jsonlogger
-# # Flask App and configurations
-# app = Flask(__name__)
-
-
-# # Initialize OpenTelemetry Tracer and Meter
-# resource = Resource(attributes={
-#     "service.name": "wsgi",
-#     "service.version": "1.0.0"
-# })
-
-# # Tracer setup
-# trace_provider = TracerProvider(resource=resource)
-# trace_exporter = OTLPSpanExporter(endpoint="localhost:4317", insecure=True)
-# trace_provider.add_span_processor(BatchSpanProcessor(trace_exporter))
-# trace.set_tracer_provider(trace_provider)
-
-# # Metrics setup
-# metric_exporter = OTLPMetricExporter(endpoint="localhost:4317", insecure=True)
-# meter_provider = MeterProvider(
-#     resource=resource,
-#     metric_readers=[PeriodicExportingMetricReader(metric_exporter)]
-# )
-# metrics.set_meter_provider(meter_provider)
-
-# # Logger setup
-# logger_provider = LoggerProvider(resource=resource)
-# set_logger_provider(logger_provider)
-# log_exporter = OTLPLogExporter(endpoint="localhost:4317", insecure=True)
-# logger_provider.add_log_record_processor(BatchLogRecordProcessor(log_exporter))
-
-# #  console_exporter = ConsoleLogExporter()
-# #  logger_provider.add_log_record_processor(BatchLogRecordProcessor(console_exporter))
-
-
-
-# # Attach a logging handler that sends logs to OTLP
-# # handler = logging.StreamHandler()
-# handler = LoggingHandler(level=logging.NOTSET, logger_provider=logger_provider)
-# app.logger.addHandler(handler)
-
-# # handler.setLevel(logging.DEBUG)
-# logger = logging.getLogger(__name__)
-# logger.setLevel(logging.INFO)
-# tracer = trace.get_tracer(__name__)
-# meter = metrics.get_meter(__name__)
-
-# with app.app_context():
-#     # Instrument Flask, SQLAlchemy, and Redis with OpenTelemetry
-#     FlaskInstrumentor().instrument_app(app)
-#     SQLAlchemyInstrumentor().instrument(engine=db.engine)
-#     RedisInstrumentor().instrument()
-    #   RequestsInstrumentor().instrument()     
-#     # Check if the connection is successfully established or not
-
-#     try:
-#         db.session.execute(text('SELECT 1'))
-#         print('\n---****** Connexion à MySQL réussie ******')
-#     except Exception as e:
-#         print('\n----------- Connexion échouée ! ERROR : ', e)
-
-# # Routes and Models import
-# from . import routes, models
-
-# # Example span creation
-
-# with tracer.start_as_current_span('example-span'):
-#     logger.info("Starting example span")
-
-# # Example custom log message
-# logger.info("WSGI service started successfully")
-
-# # Obtenir le meter pour les métriques
-
-
-
-
-
-# # # Définir un compteur pour compter le nombre de requêtes traitées
-# # request_counter = meter.create_counter(
-# #     name="http_requests_total",
-# #     description="Total number of HTTP requests",
-# #     unit="requests"
-# # )
-# # request_counter.add(1, {"endpoint": "/some-endpoint", "method": "GET"})
-
-
-
-# # # Create different namespaced loggers
-# # # It is recommended to not use the root logger with OTLP handler
-# # # so telemetry is collected only for the application
-# # logger1 = logging.getLogger("myapp.area1")
-# # logger2 = logging.getLogger("myapp.area2")
-
-# # logger1.debug("Quick zephyrs blow, vexing daft Jim.")
-# # logger1.info("How quickly daft jumping zebras vex.")
-# # logger2.warning("Jail zesty vixen who grabbed pay from quack.")
-# # logger2.error("The five boxing wizards jump quickly.")
-
-
-# # # Trace context correlation
-
-# # with tracer.start_as_current_span("foo"):
-# #     # Do something
-# #     logger2.error("Hyderabad, we have a major problem.")
-
-# # logger_provider.shutdown()
-
-
 import json
 import logging
 import os
@@ -302,30 +154,30 @@ with app.app_context():
         print('\n----------- Connexion échouée ! ERROR : ', e)
 
 # Routes and Models import
-# from . import routes, models
+from . import routes, models
 
-@app.route("/server_request")
-def server_request():
-    with tracer.start_as_current_span(
-        "server_request",
-        context=extract(request.headers),
-        kind=SpanKind.SERVER,
-        attributes=collect_request_attributes(request.environ),
-    ):
-        print(request.args.get("param"))
-        return "served"
+# @app.route("/server_request")
+# def server_request():
+#     with tracer.start_as_current_span(
+#         "server_request",
+#         context=extract(request.headers),
+#         kind=SpanKind.SERVER,
+#         attributes=collect_request_attributes(request.environ),
+#     ):
+#         print(request.args.get("param"))
+#         return "served"
 
-@app.route('/')
-def index():
-    final_roll = str(do_roll())
-    args = request.args
-    user = args.get('user',  "anonymous")
-    logger.info("completed request for user: " + user + "with dice roll of: " + final_roll, extra={"method": "GET", "status": 200, "level": "info"})
+# @app.route('/')
+# def index():
+#     final_roll = str(do_roll())
+#     args = request.args
+#     user = args.get('user',  "anonymous")
+#     logger.info("completed request for user: " + user + "with dice roll of: " + final_roll, extra={"method": "GET", "status": 200, "level": "info"})
 
-    return final_roll
+#     return final_roll
 
-def do_roll():
-    return randint(1, 6)
+# def do_roll():
+#     return randint(1, 6)
 
 # driver function
 if __name__ == '__main__':

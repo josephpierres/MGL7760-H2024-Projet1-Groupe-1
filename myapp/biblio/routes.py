@@ -20,6 +20,27 @@ request_histogram = meter.create_histogram(
     unit="seconds"
 )
 
+#
+#Phase 2: Affichage des livres
+#
+def livre_to_dict(book):
+    """Convertir un objet Livre en dictionnaire pour JSON"""
+    return {
+        'id': book.id,
+        'titre': book.titre,
+        'description': book.description,
+        'isbn': book.isbn,
+        'annee_apparition': book.annee_apparition,
+        'image': book.image,
+        'editeur': {
+            'id': book.editeur.id,
+            'nom': book.editeur.nom
+        },
+        'categories': [categorie.nom for categorie in book.categories],
+        'auteurs': [auteur.nom for auteur in book.auteurs]
+    }
+
+
 # Route 1: Affichage de la date du jour avec le libellé Biblio
 @app.route('/')
 def index():
@@ -81,9 +102,9 @@ def get_book_by_id(book_id):
                 request_counter.add(1, {"endpoint": "/getBook", "method": "GET"})
                 duration = (datetime.now() - start_time).total_seconds()
                 request_histogram.record(duration, {"endpoint": "/getBook"})
-                
+                livre_dict = livre_to_dict(book)
                 logger.info(f"Livre ID {book_id} récupéré avec succès")
-                return jsonify(book.to_dict())
+                return render_template('book_by_id.html', title='Livre', data={'livre': livre_dict})
             else:
                 logger.warning(f"Livre ID {book_id} non trouvé")
                 return jsonify({"message": "Livre non trouvé"}), 404
@@ -91,6 +112,24 @@ def get_book_by_id(book_id):
             logger.error(f"Erreur lors de la récupération du livre ID {book_id} : {str(e)}")
             return jsonify({"error": "Erreur interne du serveur"}), 500
 
+
+
+@app.route('/getAllBooks', methods=['GET'])
+def get_all_books():
+    start_time = datetime.now()
+    with tracer.start_as_current_span("get_all_books"):
+        try:
+            request_counter.add(1, {"endpoint": "/getAllBooks", "method": "GET"})
+            duration = (datetime.now() - start_time).total_seconds()
+            request_histogram.record(duration, {"endpoint": "/getAllBooks"})
+            livres = Livre.query.all()
+            livres_list = [livre_to_dict(livre) for livre in livres]
+            request_counter.add(1)
+            logger.info(f"{len(livres_list)} livres récupérés et affichés avec succès")
+            return render_template('bootstrap_table.html', title='Liste des livres', data={'livres': livres_list})
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération de tous les livres : {str(e)}")
+            return jsonify({"error": "Erreur interne du serveur"}), 500
 
 # Route 4: Rechercher des livres par titre
 @app.route('/getBookByTitle', methods=['GET', 'POST'])
@@ -101,7 +140,7 @@ def get_books_by_title():
             if form.validate_on_submit():
                 search_title = form.title.data
                 books = Livre.query.filter(Livre.titre.ilike(f'%{search_title}%')).all()
-                books_list = [livre.to_dict() for livre in books]
+                books_list = [livre_to_dict(livre) for livre in books]
                 
                 # Log number of books found
                 logger.info(f"{len(books_list)} livres trouvés pour la recherche de titre '{search_title}'")
@@ -124,7 +163,7 @@ def get_books_by_author():
             if form.validate_on_submit():
                 search_author = form.author.data
                 books = Livre.query.join(Livre.auteurs).filter(Auteur.nom.ilike(f'%{search_author}%')).all()
-                livres_list = [livre.to_dict() for livre in books]
+                livres_list = [livre_to_dict(livre) for livre in books]
                 
                 logger.info(f"{len(livres_list)} livres trouvés pour l'auteur '{search_author}'")
                 
@@ -136,7 +175,25 @@ def get_books_by_author():
             logger.error(f"Erreur lors de la recherche de livres par auteur : {str(e)}")
             return jsonify({"error": "Erreur interne du serveur"}), 500
 
+@app.route('/getBooksByCategory', methods=['GET', 'POST'])
+def get_books_by_category():
+    form = CategoryForm()
+    try:
+        categories = Categorie.query.all()
+        form.categories.choices = [(str(categorie.id), categorie.nom) for categorie in categories]
+        logger.info(f"{len(categories)} catégories récupérées pour la sélection")
+        
+        if form.validate_on_submit():
+            selected_category_id = int(form.categories.data)
+            books = Livre.query.join(Livre.categories).filter(Categorie.id == selected_category_id).all()
+            books_list = [livre_to_dict(book) for book in books]
+            logger.info(f"{len(books_list)} livres récupérés pour la catégorie ID {selected_category_id}")
+            return render_template('books_by_category.html', title='Livres par Catégorie', form=form, data={'livres': books_list})
 
+        return render_template('category_form.html', title='Sélectionner une Catégorie', form=form)
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération des livres par catégorie : {str(e)}")
+        return jsonify({"error": "Erreur interne du serveur"}), 500
 
 
 
@@ -286,25 +343,7 @@ def get_books_by_author():
 #             return jsonify({"error": "Erreur interne du serveur"}), 500
 
 
-# @app.route('/getBooksByCategory', methods=['GET', 'POST'])
-# def get_books_by_category():
-#     form = CategoryForm()
-#     try:
-#         categories = Categorie.query.all()
-#         form.categories.choices = [(str(categorie.id), categorie.nom) for categorie in categories]
-#         logger.info(f"{len(categories)} catégories récupérées pour la sélection")
-        
-#         if form.validate_on_submit():
-#             selected_category_id = int(form.categories.data)
-#             books = Livre.query.join(Livre.categories).filter(Categorie.id == selected_category_id).all()
-#             books_list = [livre_to_dict(book) for book in books]
-#             logger.info(f"{len(books_list)} livres récupérés pour la catégorie ID {selected_category_id}")
-#             return render_template('books_by_category.html', title='Livres par Catégorie', form=form, data={'livres': books_list})
 
-#         return render_template('category_form.html', title='Sélectionner une Catégorie', form=form)
-#     except Exception as e:
-#         logger.error(f"Erreur lors de la récupération des livres par catégorie : {str(e)}")
-#         return jsonify({"error": "Erreur interne du serveur"}), 500
 
 
 # @app.route('/getBookById/<int:book_id>', methods=['GET'])
@@ -323,21 +362,7 @@ def get_books_by_author():
 #         return jsonify({"error": "Erreur interne du serveur"}), 500
 
 
-# @app.route('/getBookByTitle', methods=['GET', 'POST'])
-# def get_books_by_title():
-#     form = TitleSearchForm()
-#     try:
-#         if form.validate_on_submit():
-#             search_title = form.title.data
-#             books = Livre.query.filter(Livre.titre.ilike(f'%{search_title}%')).all()
-#             books_list = [livre_to_dict(livre) for livre in books]
-#             logger.info(f"{len(books_list)} livres trouvés pour la recherche de titre '{search_title}'")
-#             return render_template('books_by_title.html', title='Livres par Titre', form=form, data={'livres': books_list})
 
-#         return render_template('title_search_form.html', title='Rechercher par Titre', form=form)
-#     except Exception as e:
-#         logger.error(f"Erreur lors de la recherche de livres par titre : {str(e)}")
-#         return jsonify({"error": "Erreur interne du serveur"}), 500
 
 
 # @app.route('/getBookByAuthor', methods=['GET', 'POST'])
