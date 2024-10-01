@@ -13,6 +13,9 @@ services:
       MYSQL_DATABASE: gestion_bibliotheque
       MYSQL_USER: myuser
       MYSQL_PASSWORD: mypassword
+      JAEGER_REPORTER_LOG_SPANS: true
+      JAEGER_SAMPLER_PARAM: 1
+      JAEGER_SAMPLER_TYPE: const
     volumes:
       - ./mysql/db.sql:/docker-entrypoint-initdb.d/db.sql
       - ./mysql/app:/app
@@ -25,10 +28,10 @@ services:
       retries: 10
     networks:
       - biblio_net
-    logging:
-      driver: loki
-      options:
-        loki-url: 'http://localhost:3100/api/prom/push'
+    # logging:
+    #   driver: loki
+    #   options:
+    #     loki-url: 'http://localhost:3100/api/prom/push'
 
     # logging:
     #   driver: "json-file"  # Utiliser le driver de log par défaut
@@ -38,15 +41,15 @@ services:
     container_name: redis
     image: redis:7.2.4    
     ports:
-      - '6378:6379'
+      - '6379:6379'
     volumes:
       - ./redis/data:/data
     networks:
       - biblio_net
-    logging:
-      driver: loki
-      options:
-        loki-url: 'http://localhost:3100/api/prom/push'
+    # logging:
+    #   driver: loki
+    #   options:
+    #     loki-url: 'http://localhost:3100/api/prom/push'
 
 
   # Flask (WSGI) : Framework web pour exécuter l'application, avec l'intégration OpenTelemetry pour exporter des traces.
@@ -70,6 +73,11 @@ services:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otelcol:4318/
       - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
       - OTEL_SERVICE_NAME=backend   
+      - JAEGER_AGENT_HOST=jaeger
+      - JAEGER_AGENT_PORT=6831
+      - JAEGER_REPORTER_LOG_SPANS=true
+      - JAEGER_SAMPLER_PARAM=1
+      - JAEGER_SAMPLER_TYPE=const
     ports:
       - "5000:5000"
     expose:
@@ -83,10 +91,10 @@ services:
    #  - grafana
     networks:
       - biblio_net
-    logging:
-      driver: loki
-      options:
-        loki-url: 'http://localhost:3100/api/prom/push'
+    # logging:
+    #   driver: loki
+    #   options:
+    #     loki-url: 'http://localhost:3100/api/prom/push'
 
 
   # Nginx : Serveur HTTP inverseur pour servir l'application web et répartir la charge.
@@ -108,10 +116,10 @@ services:
       - wsgi
     networks:
       - biblio_net
-    logging:
-      driver: loki
-      options:
-        loki-url: 'http://localhost:3100/api/prom/push'
+    # logging:
+    #   driver: loki
+    #   options:
+    #     loki-url: 'http://localhost:3100/api/prom/push'
 
 
   # Collecte et exporte les traces, logs et métriques vers Prometheus (pour les métriques), Loki (pour les logs) et Jaeger ou Tempo (pour les traces).
@@ -120,11 +128,13 @@ services:
     image: otel/opentelemetry-collector:latest   
     volumes:
       - ./otel-collector/configs/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
-    
+      - ./otel-collector/logs/:/tmp/logs/
     ports:
       - "4317:4317"  # OTLP gRPC for traces 
       - "4318:4318" # Default endpoint for OpenTelemetry receiver.
       - "4318:4318/udp"
+      - "3500:3500" # loki receiver HTTP     
+      - "9464:9464" # prometheus 
       # - "55679:55679" # Default endpoint for ZPages.
       # - "14250:14250" # Default endpoint for Jaeger gRPC receiver.
       # - "14268:14268" # Default endpoint for Jaeger HTTP receiver.
@@ -135,10 +145,14 @@ services:
       - "13133:13133" # health_check extension
     networks:
       - biblio_net
+    depends_on:
+      - prometheus
+      - loki
+      - jaeger
 
   # Grafana: Plateforme de visualisation des données pour observer les métriques (de Prometheus), les logs (de Loki), et les traces (de OpenTelemetry/Jaeger).
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:10.2.0
     # build:
     #   context: ./grafana
     container_name: grafana  
@@ -157,12 +171,13 @@ services:
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_ANALYTICS_REPORTING_ENABLED: false
     networks:
       - biblio_net
-    logging:
-      driver: loki
-      options:
-        loki-url: 'http://localhost:3100/api/prom/push'
+    # logging:
+    #   driver: loki
+    #   options:
+    #     loki-url: 'http://localhost:3100/api/prom/push'
 
 
   # Système de surveillance pour collecter et stocker les métriques de l'infrastructure (comme l'utilisation du CPU, la RAM, etc.).
@@ -176,20 +191,23 @@ services:
       - "9090:9090"
     networks:
       - biblio_net
-    logging:
-      driver: loki
-      options:
-        loki-url: 'http://localhost:3100/api/prom/push'
+    # logging:
+    #   driver: loki
+    #   options:
+    #     loki-url: 'http://localhost:3100/api/prom/push'
 
 
   # Loki : Stocke les logs et les rend disponibles pour visualisation via Grafana.
   loki:
-    image: grafana/loki:latest
+    image: grafana/loki:3.0.0
     container_name: loki
+    command :  -config.file=/etc/loki/loki-config.yml 
     ports:
       - "3100:3100"
+      - "9016"
     volumes:
-      - ./loki/loki-config.yml:/etc/loki/local-config.yaml
+      - ./loki/data:/data
+      - ./loki/configs:/etc/loki/
     networks:
       - biblio_net
 
@@ -198,28 +216,49 @@ services:
   promtail:
     image: grafana/promtail:latest
     container_name: promtail
+    command: -config.file=/etc/promtail/config.yml
+    ports:
+      - 9080
+      - 33391
     volumes:
       - ./var/log:/var/log
-      - ./promtail/promtail-config.yml:/etc/promtail/config.yml
+      - ./promtail/config.yml:/etc/promtail/config.yml
+      - /var/run/docker.sock:/var/run/docker.sock # neccessary for docker logging (do not forget the plugin!!)
     networks:
       - biblio_net
-    logging:
-      driver: loki
-      options:
-        loki-url: 'http://localhost:3100/api/prom/push'
+    # logging:
+    #   driver: loki
+    #   options:
+    #     loki-url: 'http://localhost:3100/api/prom/push'
   
   # Jaeger : Permet la collecte et la visualisation des traces distribuées pour déboguer et observer les flux entre les microservices.
   jaeger:
     image: jaegertracing/all-in-one:latest
     container_name: jaeger
+    volumes:
+      - "./jaeger/jaeger-ui.json:/etc/jaeger/jaeger-ui.json"
+    command: --query.ui-config /etc/jaeger/jaeger-ui.json
+    environment:
+      - METRICS_STORAGE_TYPE=prometheus
+      - PROMETHEUS_SERVER_URL=http://prometheus:9090
+      - PROMETHEUS_QUERY_NAMESPACE=${PROMETHEUS_QUERY_NAMESPACE:-}
+      - PROMETHEUS_QUERY_DURATION_UNIT=${PROMETHEUS_QUERY_DURATION_UNIT:-}
+      - PROMETHEUS_QUERY_NORMALIZE_CALLS=true
+      - PROMETHEUS_QUERY_NORMALIZE_DURATION=true
+      - COLLECTOR_OTLP_ENABLED=true
     ports:
-      - "16686:16686"  # UI Jaeger
-      - "14250:14250"  # gRPC
-      - "14268:14268"  # HTTP
+      - 16686:16686  # UI Jaeger
+      - 14250  # gRPC
+      - 14268  # HTTP
+      - 5775/udp 
+      - 6831/udp 
+      - 6832/udp 
+      - 5778       
+      - 9411 
     networks:
       - biblio_net
-    environment:
-      COLLECTOR_ZIPKIN_HTTP_PORT: 9411
+    # environment:
+    #   
 
 
 networks:

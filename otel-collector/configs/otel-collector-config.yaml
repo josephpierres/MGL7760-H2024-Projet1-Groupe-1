@@ -6,8 +6,14 @@ receivers:
       http:
         endpoint: 0.0.0.0:4318
         cors:      #j'ai vu des miseres `a cause de cela`
-          allowed_origins: ['*']  # Autorise toutes les origines pour CORS, peut être modifié pour plus de sécurité
+           allowed_origins: ['*'] # Autorise toutes les origines pour CORS, peut être modifié pour plus de sécurité
 
+  filelog:
+    include: ['/tmp/logs/system.log']
+    operators:
+    - type: regex_parser
+      regex: "^(?P<timestamp>\\w{3} \\d{1,2} \\d{2}:\\d{2}:\\d{2}) (?P<message>.*)$"
+  
   jaeger:
     protocols:
       grpc:
@@ -15,26 +21,51 @@ receivers:
       thrift_http:
         endpoint: 0.0.0.0:14268/api/traces
 
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'otelcol'
+          scrape_interval: 10s
+          static_configs:
+            - targets: ['0.0.0.0:8888']
+ 
+  mysql:
+    endpoint: "localhost:3306"
+    collection_interval: 10s
+    username: user
+    password: user
+    initial_delay: 10s
+
+  nginx:
+    endpoint: "http://localhost:8000/nginx_status"
+  redis:
+    endpoint: "localhost:6379"
+    collection_interval: 10s
+  docker_stats:
+    endpoint: unix:///var/run/docker.sock
+
+
 processors:
   batch:
-    timeout: 10s
-  memory_limiter:
-    limit_mib: 4000
-    spike_limit_mib: 500
-    check_interval: 1s
+  transform:
+    error_mode: ignore
+    trace_statements:
+      - context: span
 
 exporters:
-  jaeger:
-    endpoint: "jaeger:14250"
-    tls:
-      insecure: true
-  prometheus:
-    endpoint: "0.0.0.0:8889"
-    namespace: "biblio"
-  loki:
-    endpoint: "http://loki:3100/loki/api/v1/push"
+  otlphttp:
+    endpoint: "http://localhost:3100/loki/api/v1/push"
     labels:
       job: "otelcol"
+  otlp:
+    endpoint: "http://jaeger:4318"   # jaeger
+    tls:
+      insecure: true
+  otlphttp/prometheus:
+    endpoint: "http://localhost:9090/api/v1/otlp"
+    tls:
+      insecure: true 
+    
   logging:
     loglevel: debug
 
@@ -47,14 +78,14 @@ service:
   extensions: [health_check]
   pipelines:
     traces:
-      receivers: [otlp, jaeger]
-      processors: [memory_limiter, batch]
-      exporters: [jaeger, logging]
+      receivers: [otlp]
+      processors: [transform, batch]
+      exporters: [otlp, debug, logging]
     metrics:
-      receivers: [otlp]
+      receivers: [otlp, prometheus, redis, mysql, nginx, docker_stats]
       processors: [batch]
-      exporters: [prometheus, logging]
+      exporters: [otlphttp/prometheus, debug, logging]
     logs:
-      receivers: [otlp]
+      receivers: [otlp, filelog]
       processors: [batch]
-      exporters: [loki, logging]
+      exporters: [otlphttp]

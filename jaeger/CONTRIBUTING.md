@@ -16,6 +16,9 @@ OTEL_EXPORTER_JAEGER_AGENT_SPLIT_OVERSIZED_BATCHES
 
 OTEL_EXPORTER_JAEGER_TIMEOUT
 
+- JAEGER_REPORTER_LOG_SPANS=true
+- JAEGER_SAMPLER_PARAM=1
+- JAEGER_SAMPLER_TYPE=const
 
 
 5775	UDP	agent	accept zipkin.thrift over compact thrift protocol (deprecated, used by legacy clients only)
