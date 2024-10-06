@@ -1,0 +1,295 @@
+
+services:
+  # Serveur de base de données MySQL
+  # MySQL : Base de données relationnelle pour stocker les données de l'application.
+  mysql:
+    image: mysql:8.0.22   
+    container_name: mysql
+    command: --default-authentication-plugin=mysql_native_password    
+    restart: always   
+    ports:
+      - '3306:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: gestion_bibliotheque
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: mypassword
+      JAEGER_REPORTER_LOG_SPANS: true
+      JAEGER_SAMPLER_PARAM: 1
+      JAEGER_SAMPLER_TYPE: const
+    volumes:
+      - ./mysql/db.sql:/docker-entrypoint-initdb.d/db.sql
+      - ./mysql/app:/app
+      - ./mysql/data:/var/lib/mysql
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -u root --password=$$MYSQL_ROOT_PASSWORD
+      start_period: 5s
+      interval: 5s
+      timeout: 20s
+      retries: 10
+    
+
+  # Serveur de cache Redis
+  redis:
+    container_name: redis
+    image: redis:7.2.4    
+    ports:
+      - '6379:6379'
+    volumes:
+      - ./redis/data:/data
+  
+
+  # Application WSGI (Flask)
+  wsgi:
+    build:
+      context: ./myapp
+      dockerfile: Dockerfile
+    image: wsgi:1.0
+    container_name: wsgi
+    restart: always
+    volumes:
+      - ./myapp:/app
+    working_dir: /app
+    environment:
+      
+      - FLASK_ENV=production
+      - APP_NAME=Biblio-app
+      - REDIS_URL=redis://redis:6379/0 
+      - OTEL_SERVICE_NAME=flask-app
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      - OTEL_EXPORTER_OTLP_ENDPOINT=localhost:4317
+      - OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true
+      - OTEL_PYTHON_LOG_CORRELATION=true
+      - FASTAPI_URL=http://biblio_api:8082
+      - OTEL_EXPORTER_PROMETHEUS_HOST=0.0.0.0
+      - OTEL_EXPORTER_PROMETHEUS_PORT=9464
+
+      - OTEL_TRACES_EXPORTER=otlp
+      # - OTEL_METRICS_EXPORTER=otlp,prometheus
+      - OTEL_LOGS_EXPORTER=otlp        
+    ports:
+     - '5000:5000'
+     - '9464:9464' 
+     - '8081:8081'    
+    depends_on:
+      
+      - redis
+      - biblio_api
+      - otel-collector
+      - prometheus
+      - grafana
+      - jaeger
+
+
+  biblio_api:
+    image: biblio_api
+    container_name: biblio_api
+    build:
+      context: ./myapi
+    environment:
+      - OTLP_GRPC_ENDPOINT=http://otel-collector:4317 
+      - MYSQL_PORT=3306    
+      - OTEL_TRACES_EXPORTER=otlp
+      - OTEL_METRICS_EXPORTER=otlp,prometheus
+      - OTEL_LOGS_EXPORTER=otlp  
+    command:     
+      - 'python3'
+      - 'app.py'
+    depends_on:
+      - mysql
+      - otel-collector
+    ports:
+      - "8082:8082"      
+
+  # Serveur Nginx
+  nginx:
+    # build:
+    #     context: ./nginx
+    #     dockerfile: Dockerfile
+    container_name: nginx
+    image: nginx:latest
+    restart: always
+    volumes: 
+      # - './nginx/configs/opentelemetry_module.conf:/etc/nginx/conf.d/opentelemetry_module.conf'
+      - './nginx/configs/default.conf:/etc/nginx/conf.d/default.conf'
+      - './nginx/www:/var/www/html'
+      - './nginx/log:/var/log/nginx'
+    ports:
+      - '8000:80'
+    depends_on:
+      - wsgi  
+  # Database to store traces by Grafana Labs
+  tempo:
+    image: grafana/tempo:2.5.0  # tested on 2.5.0
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./etc/tempo/tempo.yaml:/etc/tempo.yaml
+      # - ./data/tempo:/var/tempo
+    # ports:
+      # - "3200:3200"     # tempo
+      # - "9095:9095"     # tempo grpc
+      # - "4317:4317"     # otlp grpc
+      # - "4318:4318"     # otlp http
+    # depends_on:
+    #   - init
+
+  # Jaeger
+  jaeger:
+    image: jaegertracing/all-in-one:1.59.0
+    volumes:
+      - ./etc/jaeger/jaeger-ui.json:/etc/jaeger/jaeger-ui.json
+    command:
+      - --query.ui-config=/etc/jaeger/jaeger-ui.json
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+      - COLLECTOR_OTLP_GRPC_HOST_PORT=:4317
+      - COLLECTOR_OTLP_HTTP_HOST_PORT=:4318
+      - METRICS_STORAGE_TYPE=prometheus
+      - PROMETHEUS_SERVER_URL=http://prometheus:9090
+      - LOG_LEVEL=debug
+    ports:
+      - "16686:16686"  # Jaeger UI accessed by http://localhost:16686
+      # - "14269:14269"  # health check at / and metrics at /metrics
+      # - "4317:4317"    # OTLP gRPC receiver
+      
+
+  # And put them in an OTEL collector pipeline...
+  otel-collector:
+    # image: otel/opentelemetry-collector-contrib:latest
+    image: otel/opentelemetry-collector:0.104.0
+    command: [ "--config=/etc/otel-collector.yaml" ]
+    volumes:
+      - ./etc/otel-collector/config.yaml:/etc/otel-collector.yaml
+    ports:
+      # - "1888:1888"   # pprof extension
+      # - "8888:8888"   # Prometheus metrics exposed by the collector
+      # - "8889:8889"   # Prometheus exporter metrics
+      # - "13133:13133" # health_check extension
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+      # - "55679:55679" # zpages extension
+    depends_on:
+      - tempo
+      - jaeger
+
+  loki:
+    image: grafana/loki:3.1.0 # tested on 3.1.0
+    command: ["--pattern-ingester.enabled=true", "--config.file=/etc/loki/loki.yaml"]
+    ports:
+      - "3100:3100"
+    volumes:
+      - "./etc/loki/loki.yaml:/etc/loki/loki.yaml"
+
+  # As such, we need to chown the volume in order for Tempo to start correctly.
+  # pyrra-init:
+  #   image: ghcr.io/pyrra-dev/pyrra:v0.7.7
+  #   user: root
+  #   entrypoint:
+  #     - "chown"
+  #     - "65533:65533"
+  #     - "/etc/prometheus/pyrra"
+  #   volumes:
+  #     - prometheus_pyrra:/etc/prometheus/pyrra
+
+  # pyrra-sleep:
+  #   image: ghcr.io/pyrra-dev/pyrra:v0.7.7
+  #   entrypoint:
+  #     - "sleep"
+  #     - "5"
+
+
+  # Système de surveillance pour collecter et stocker les métriques de l'infrastructure (comme l'utilisation du CPU, la RAM, etc.).
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    hostname: localhost
+    command:
+      - --config.file=/etc/prometheus.yaml
+      - --web.enable-remote-write-receiver
+      - --web.enable-lifecycle
+      - --enable-feature=exemplar-storage
+      - --enable-feature=native-histograms
+    volumes:
+      - ./etc/prometheus/prometheus.yaml:/etc/prometheus.yaml
+      - prometheus_pyrra:/etc/prometheus/pyrra
+    ports:
+      - "9090:9090"
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    hostname: localhost
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./etc/alertmanager/:/etc/alertmanager/
+      - alertmanager:/data
+    command:
+      - '--config.file=/etc/alertmanager/config.yml'
+      - '--log.level=debug'
+
+  # webhook-tester:
+  #   image: tarampampam/webhook-tester:1.1.0
+  #   command: serve --port 8080
+  #   ports:
+  #     - '8080:8080'
+  #   environment:
+  #     - CREATE_SESSION=00000000-0000-0000-0000-000000000000
+
+  # karma:
+  #   image: ghcr.io/prymitive/karma:v0.120
+  #   ports:
+  #     - '8081:8081'
+  #   environment:
+  #     - ALERTMANAGER_URI=http://alertmanager:9093
+  #     - ALERTMANAGER_INTERVAL=10s
+  #     - PORT=8081
+  #   depends_on:
+  #     - alertmanager
+
+  # pyrra-api:
+  #   image: ghcr.io/pyrra-dev/pyrra:v0.7.7
+  #   command:
+  #     - api
+  #     - --prometheus-url=http://prometheus:9090
+  #     - --prometheus-external-url=http://localhost:9090
+  #     - --api-url=http://pyrra-filesystem:9444
+  #   ports:
+  #     - "9099:9099"
+  #   depends_on:
+  #     - prometheus
+
+  # pyrra-filesystem:
+  #   image: ghcr.io/pyrra-dev/pyrra:v0.7.7
+  #   command:
+  #     - filesystem
+  #     - --log-level=debug
+  #     - --prometheus-url=http://prometheus:9090
+  #     - --generic-rules
+  #   volumes:
+  #     - ./etc/pyrra:/etc/pyrra
+  #     - prometheus_pyrra:/etc/prometheus/pyrra
+  #   depends_on:
+  #     - prometheus
+  #     - pyrra-api
+  #     - pyrra-init
+
+  grafana:
+    image: grafana/grafana:11.1.0 # tested on 11.1.0
+    volumes:
+      - ./etc/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - ./etc/grafana/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
+      - ./etc/grafana/plugins.yaml:/etc/grafana/provisioning/plugins/plugins.yaml
+      - ./etc/dashboards:/etc/grafana/dashboards
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+      - GF_FEATURE_TOGGLES_ENABLE=traceqlEditor traceQLStreaming metricsSummary traceToMetrics traceqlSearch
+      - GF_INSTALL_PLUGINS=https://storage.googleapis.com/integration-artifacts/grafana-lokiexplore-app/grafana-lokiexplore-app-latest.zip;grafana-lokiexplore-app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - tempo
+      - loki
+volumes:
+  prometheus_pyrra: {}
+  alertmanager: {}
