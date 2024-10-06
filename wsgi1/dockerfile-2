@@ -29,4 +29,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 # pour uwsgi
 CMD [ "uwsgi", "--ini", "app-2.ini"] 
 # EXPOSE 5000
-# CMD [ "flask", "run","--host","0.0.0.0","--port","5000"]
+# CMD [ "flask", "run","--host","localhost","--port","5000"]

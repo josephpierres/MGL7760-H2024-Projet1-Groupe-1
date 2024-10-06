@@ -7,7 +7,7 @@ class DefaultConfig(object):
     CACHE_TYPE = 'redis'
     SECRET_KEY = os.urandom(32)
     WTF_CSRF_SECRET_KEY = SECRET_KEY
-    SERVER_NAME = 'localhost:8000'
+    # SERVER_NAME = 'localhost:8000'
     WTF_CSRF_ENABLED = False
 
 

@@ -226,7 +226,7 @@ tracer_provider = TracerProvider(resource=resource)
 set_tracer_provider(tracer_provider)
 
 trace_exporter = OTLPSpanExporter(
-    endpoint=os.getenv("OTLP_ENDPOINT", "http://otelcol:4317"), 
+    endpoint=os.getenv("OTLP_ENDPOINT", "localhost:4317"), 
    # insecure=json.loads(os.getenv("INSECURE", "true").lower()),
     )
 
@@ -298,5 +298,5 @@ from . import routes, models
 
 # driver function
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5002)
+    app.run(host='localhost', port=5002)
     # logger_provider.shutdown()

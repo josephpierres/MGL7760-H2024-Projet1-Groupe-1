@@ -12,15 +12,14 @@
 <div class="container">
     <h1>{{ title }}</h1>
     <div>
-        <p><strong>ID:</strong> {{ data.livre.id }}</p>
-        <p><strong>Titre:</strong> {{ data.livre.titre }}</p>
-        <p><strong>Description:</strong> {{ data.livre.description }}</p>
-        <p><strong>ISBN:</strong> {{ data.livre.isbn }}</p>
-        <p><strong>Année d'apparition:</strong> {{ data.livre.annee_apparition }}</p>
-        <p><strong>Image:</strong> {{ data.livre.image }}</p>
-        <p><strong>Editeur:</strong> {{ data.livre.editeur.nom }}</p>
-        <p><strong>Categories:</strong> {{ ', '.join(data.livre.categories) }}</p>
-        <p><strong>Auteurs:</strong> {{ ', '.join(data.livre.auteurs) }}</p>
+        <p><strong>ID:</strong> {{ livre.id }}</p>
+        <p><strong>Titre:</strong> {{ livre.titre }}</p>
+        <p><strong>Description:</strong> {{ livre.description }}</p>
+        <p><strong>ISBN:</strong> {{ livre.isbn }}</p>
+        <p><strong>Année d'apparition:</strong> {{ livre.annee_apparition }}</p>
+        <p><strong>Image:</strong> {{ livre.image }}</p>
+        <p><strong>Editeur:</strong> {{ livre.editeur.nom }}</p>
+        
     </div>
 </div>
 

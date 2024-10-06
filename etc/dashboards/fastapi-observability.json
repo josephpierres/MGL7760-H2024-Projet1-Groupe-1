@@ -672,8 +672,8 @@
       {
         "current": {
           "selected": true,
-          "text": "fastapi-app",
-          "value": "fastapi-app"
+          "text": "biblio_api",
+          "value": "biblio_api"
         },
         "datasource": {
           "type": "prometheus",

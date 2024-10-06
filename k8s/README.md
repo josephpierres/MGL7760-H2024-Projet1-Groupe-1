@@ -129,4 +129,4 @@ minikube service flask-nginx -n bbl
 
  kubectl logs -f -n bbl flaskapp-7474979c4-vq5mq
 
-uwsgi --socket 0.0.0.0:8002 --protocol=http -w wsgi:main
+uwsgi --socket localhost:8002 --protocol=http -w wsgi:main

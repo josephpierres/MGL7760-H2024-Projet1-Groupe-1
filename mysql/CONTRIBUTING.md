@@ -3,6 +3,9 @@
 python3 dbMigration.py
 # pour visualiser
 """""
+docker exec -it mysql bash -l
+
+
 docker run mysql  mysql -h mysql -u root -ppassword
 
 use gestion_bibliotheque;

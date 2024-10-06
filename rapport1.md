@@ -105,7 +105,7 @@ le repertoire __pycache__ est creer autaumatiquement par python, nous avons ajou
 
 pour tester si uWSGI peut faire fonctionner le programme
 
-uwsgi --socket 0.0.0.0:5000 --protocol=http -w wsgi:app
+uwsgi --socket localhost:5000 --protocol=http -w wsgi:app
 
 # CREATE DOCKERFILE
 docker image inspect <imageID> me donne les informations tel que la version d´un image du repo de docker

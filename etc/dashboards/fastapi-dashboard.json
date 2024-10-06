@@ -1037,7 +1037,7 @@
         "hide": 2,
         "label": "",
         "name": "job",
-        "query": "fastapi-app",
+        "query": "biblio_api",
         "skipUrlSync": false,
         "type": "constant"
       }

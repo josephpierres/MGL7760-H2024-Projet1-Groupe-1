@@ -67,4 +67,4 @@ CMD start.sh
 
 #!/bin/bash
 nohup redis-server &
-uwsgi --http 0.0.0.0:8000 --module mymodule.wsgi
+uwsgi --http localhost:8000 --module mymodule.wsgi

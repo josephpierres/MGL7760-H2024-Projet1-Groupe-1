@@ -1,5 +1,5 @@
 # utiliser l´image Python3.12.1 du conteneur
-FROM python:3.10
+FROM python:latest
 # Step 2: Installer les Dependences pip and Python 
 
 ENV PYTHONUNBUFFERED 1
@@ -19,10 +19,9 @@ RUN apt-get update
 # RUN rm get-pip.py
 RUN pip install --upgrade pip
 # installer les dependances à Python
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt && \
+opentelemetry-bootstrap -a install
 # RUN opentelemetry-bootstrap -a install
 COPY . .
-# execute la commande d´execution de flask
-#pour uwsgi
-
-CMD [ "uwsgi", "--ini", "app.ini" ,"--uid", "www-data"] 
+# CMD [ "python3", "-m" , "flask", "run", "--host=localhost"]
+CMD ["uwsgi", "--ini", "app.ini" ,"--uid", "www-data"] 

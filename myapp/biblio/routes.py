@@ -1,6 +1,8 @@
 import logging
+import os
 import time
 from biblio.utilities import AuthorSearchForm, CategoryForm, TitleSearchForm
+from biblio.instrument_tracing import TracesInstrumentor
 from . import app, redis_client, logger
 from flask import render_template, request, jsonify, session
 from biblio.models import Auteur, Categorie, Livre
@@ -8,6 +10,10 @@ from datetime import datetime
 from prometheus_client import make_wsgi_app, Counter, Histogram
 
 
+service_name = "biblio-app"
+otlp_endpoint = os.environ.get("OTLP_GRPC_ENDPOINT", "localhost:4317")
+
+TracesInstrumentor(app=app, service_name=service_name, otlp_endpoint=otlp_endpoint, excluded_urls="/metrics")
 # OpenTelemetry metrics
 request_counter = Counter(
     'app_request_count',
@@ -80,12 +86,12 @@ def get_book_by_id(book_id):
             request_counter.labels('GET', '/getBook', 200).inc()
             duration = (datetime.now() - start_time).total_seconds()
             
-            
-            logger.info(f"Livre ID {book_id} récupéré avec succès")     
+            logger.info(f"Livre ID {book_id} récupéré avec succès") 
+                
         
             livre_dict = livre_to_dict(livre)
             logger.info(f"Livre ID {book_id} récupéré avec succès")
-            request_histogram.labels('GET', '/').observe(time.time() - start_time)
+            request_histogram.labels('GET', '/').observe(duration)
             return render_template('book_by_id.html', title='Livre', data={'livre': livre_dict})
         else:
             logger.warning(f"Livre ID {book_id} non trouvé")
