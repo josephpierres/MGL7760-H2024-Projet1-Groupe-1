@@ -46,3 +46,12 @@ source ./.venv/bin/activate
 pip3 install -r requirements.txt
 
 
+
+
+thrift: JaegerExporter
+opentelemetry. importer.prometheus PrometheusMetricReader
+
+chercher Jaeger sur github
+
+
+

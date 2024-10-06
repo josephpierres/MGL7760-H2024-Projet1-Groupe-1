@@ -19,7 +19,7 @@ docker rm mysql redis
 
 echo " create the image"
 docker build -t redis ./redis
-docker run --name redis -dp 6378:6379 redis 
+docker run --name redis -dp 6379:6379 redis 
 
 echo " create the image"
 docker build -t mysql_db ./mysql
