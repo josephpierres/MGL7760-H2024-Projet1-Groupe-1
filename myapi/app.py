@@ -19,7 +19,9 @@ from crud import ( get_all_books as all_books,
                   get_book_by_id as book_by_id, 
                   get_books_by_author as books_by_author, 
                   get_books_by_category as books_by_category,
-                  get_books_by_title as books_by_title)
+                  get_books_by_title as books_by_title,
+                  getBooksCategories as booksCategories
+                  )
 from database import SessionLocal, engine
 
 app = FastAPI()
@@ -71,26 +73,8 @@ SQLAlchemyInstrumentor().instrument(
     commenter_options={},
 )
 
-# Route 1: Affichage de la date du jour avec le libellé Biblio
-@app.get("/")
-def root_endpoint():
-    logging.info("Hello World")
-    return {"message": "Hello World"}
 
-# Route 2: Health check - Heure actuelle
-@app.get('/heure')
-def get_time():
-    start_time = datetime.now()
-    try:
-        current_time = datetime.now().strftime("%H:%M:%S")
-        duration = (datetime.now() - start_time).total_seconds()
-        logging.info("Heure actuelle récupérée avec succès")
-        return {"Heure": current_time}
-    except Exception as e:
-        logging.error(f"Erreur lors de la récupération de l'heure : {str(e)}")
-        raise HTTPException(status_code=500, detail="Erreur interne du serveur")
-
-# Route 3: Récupérer un livre par ID
+# Route 1: Récupérer un livre par ID
 @app.get('/getBookById/{book_id}')
 def get_book_by_id(book_id, db: Session = Depends(get_db)):
     start_time = datetime.now()
@@ -105,7 +89,7 @@ def get_book_by_id(book_id, db: Session = Depends(get_db)):
             raise HTTPException(status_code=404, detail="Livre non trouvé")
     except Exception as e:
         logging.error(f"Erreur lors de la récupération du livre ID {book_id} : {str(e)}")
-        raise HTTPException(status_code=500, detail="Erreur interne du serveur")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Route 4: Rechercher des livres par titre
 @app.get('/getBooksByTitle/{search_title}')
@@ -116,7 +100,7 @@ def get_books_by_title(search_title, db: Session = Depends(get_db)):
         return books
     except Exception as e:
         logging.error(f"Erreur lors de la recherche de livres par titre : {str(e)}")
-        raise HTTPException(status_code=500, detail="Erreur interne du serveur")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Route 5: Rechercher des livres par auteur
 @app.get('/getBooksByAuthor/{search_author}')
@@ -127,7 +111,7 @@ def get_books_by_author(search_author, db: Session = Depends(get_db)):
         return books
     except Exception as e:
         logging.error(f"Erreur lors de la recherche de livres par auteur : {str(e)}")
-        raise HTTPException(status_code=500, detail="Erreur interne du serveur")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Route 6: Rechercher tous les livres
 @app.get("/getAllBooks")
@@ -142,7 +126,7 @@ def get_all_books(db: Session = Depends(get_db)):
             raise HTTPException(status_code=404, detail="Aucun livre trouvé")
     except Exception as e:
         logging.error(f"Erreur lors de la récupération de tous les livres-back-end : {str(e)}")
-        raise HTTPException(status_code=500, detail="Erreur interne du serveur")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Route 7: Rechercher des livres par categorie
 @app.get('/getBooksByCategory/{selected_category_id}')
@@ -153,7 +137,16 @@ def get_books_by_category(selected_category_id, db: Session = Depends(get_db)):
         return books
     except Exception as e:
         logging.error(f"Erreur lors de la récupération des livres par catégorie : {str(e)}")
-        raise HTTPException(status_code=500, detail="Erreur interne du serveur")
+        raise HTTPException(status_code=500, detail=str(e))
+@app.get('/getBooksCategories/')
+def getbooksCategories(db: Session = Depends(get_db)):    
+    try:
+        books = booksCategories(db)
+        logging.info(f"{len(books)} categorie(s) de livres récupérés")
+        return books
+    except Exception as e:
+        logging.error(f"Erreur lors de la récupération des categories de livres : {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Vérification de la connexion à MySQL
 try:

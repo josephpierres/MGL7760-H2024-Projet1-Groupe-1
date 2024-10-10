@@ -55,7 +55,6 @@ WTForms
 # OpenTelemetry Core and Instrumentation
 prometheus-client
 opentelemetry-distro
-opentelemetry-instrumentation-fastapi
 opentelemetry-instrumentation-logging
 opentelemetry-instrumentation-flask
 opentelemetry-exporter-otlp

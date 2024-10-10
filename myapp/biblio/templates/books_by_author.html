@@ -9,39 +9,47 @@
 </head>
 <body>
 
-<div class="container">
-    <h1>{{ title }}</h1>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Titre</th>
-                <th>Description</th>
-                <th>ISBN</th>
-                <th>Année d'apparition</th>
-                <th>Image</th>
-                <th>Editeur</th>
-                <th>Categories</th>
-                <th>Auteurs</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for livre in data.livres %}
-                <tr>
-                    <td>{{ livre.id }}</td>
-                    <td>{{ livre.titre }}</td>
-                    <td>{{ livre.description }}</td>
-                    <td>{{ livre.isbn }}</td>
-                    <td>{{ livre.annee_apparition }}</td>
-                    <td>{{ livre.image }}</td>
-                    <td>{{ livre.editeur.nom }}</td>
-                    <td>{{ ', '.join(livre.categories) }}</td>
-                    <td>{{ ', '.join(livre.auteurs) }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+    <div class="container">
+        <h1>{{ title }}</h1>
+        {% if data.livres %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Titre</th>
+                        <th>Description</th>
+                        <th>ISBN</th>
+                        <th>Année d'apparition</th>
+                        <th>Image</th>
+                        <th>Editeur</th>
+                        <th>Auteurs</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for livre in data.livres %}
+                        <tr>
+                            <td>{{ livre.id }}</td>
+                            <td>{{ livre.titre }}</td>
+                            <td>{{ livre.description }}</td>
+                            <td>{{ livre.isbn }}</td>
+                            <td>{{ livre.annee_apparition }}</td>
+                            <td>{{ livre.image }}</td>
+                            <td>{{ livre.editeur.nom if livre.editeur else 'N/A' }}</td>
+                            <td>
+                                {% if livre.auteurs %}
+                                    {{ livre.auteurs|map(attribute='nom')|join(', ') }}
+                                {% else %}
+                                    Aucun auteur
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>Aucun livre trouvé pour cette catégorie.</p>
+        {% endif %}
+    </div>
 
 <!-- Inclure les fichiers Bootstrap JS -->
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>

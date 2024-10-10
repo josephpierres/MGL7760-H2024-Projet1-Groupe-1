@@ -68,4 +68,7 @@ def get_books_by_category(selected_category_id, db: Session):
     except Exception as e:
         logging.error(f"Erreur lors de la récupération des livres par categorie: {str(e)}")
         raise HTTPException(status_code=500, detail="Erreur interne du serveur")
+    
+def getBooksCategories(db: Session):
+    return db.query(Categorie).all()
 

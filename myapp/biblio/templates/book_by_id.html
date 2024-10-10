@@ -9,19 +9,21 @@
 </head>
 <body>
 
-<div class="container">
-    <h1>{{ title }}</h1>
-    <div>
-        <p><strong>ID:</strong> {{ livre.id }}</p>
-        <p><strong>Titre:</strong> {{ livre.titre }}</p>
-        <p><strong>Description:</strong> {{ livre.description }}</p>
-        <p><strong>ISBN:</strong> {{ livre.isbn }}</p>
-        <p><strong>Année d'apparition:</strong> {{ livre.annee_apparition }}</p>
-        <p><strong>Image:</strong> {{ livre.image }}</p>
-        <p><strong>Editeur:</strong> {{ livre.editeur.nom }}</p>
-        
+    <div class="container">
+        <h1>{{ title }}</h1>
+        <div>
+            <p><strong>ID:</strong> {{ livre.id }}</p>
+            <p><strong>Titre:</strong> {{ livre.titre }}</p>
+            <p><strong>Description:</strong> {{ livre.description }}</p>
+            <p><strong>ISBN:</strong> {{ livre.isbn }}</p>
+            <p><strong>Année d'apparition:</strong> {{ livre.annee_apparition }}</p>
+            <p><strong>Image:</strong> {{ livre.image }}</p>
+            <p><strong>Editeur:</strong> {{ livre.editeur.nom }}</p>
+            <p><strong>Auteur principal:</strong> {{ livre.auteurs[0].nom }}</p>
+            <p><strong>Categorie principale:</strong> {{ livre.categories[0].nom }}</p>
+            
+        </div>
     </div>
-</div>
 
 <!-- Inclure les fichiers Bootstrap JS -->
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>

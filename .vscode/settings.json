@@ -2,5 +2,6 @@
     "python.analysis.autoImportCompletions": true,
     "cSpell.enableFiletypes": [
         "!yaml"
-    ]
+    ],
+    "makefile.configureOnOpen": true
 }

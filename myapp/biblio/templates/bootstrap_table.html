@@ -1,5 +1,3 @@
-
-<!-- j'utilise l'héritage de modèle -->
 {% extends "base.html" %}
 
 {% block content %}
@@ -17,33 +15,37 @@
         <th>Auteurs</th>        
       </tr>
     </thead>
-    <!-- ... (autres parties du code HTML) ... -->
     <tbody>
       {% for livre in data.livres %}
           <tr>
-              <td rowspan="{{ [livre.categories|length, livre.auteurs|length, 1]|max }}"><a href="{{ url_for('get_book_by_id', book_id=livre.id) }}">voir le livre</a></td>
+              <!-- Lien pour voir le livre, avec rowspan égal au plus grand nombre entre auteurs et catégories -->
+              <td rowspan="{{ [livre.categories|length, livre.auteurs|length, 1]|max }}">
+                  <a href="{{ url_for('get_book_by_id', book_id=livre.id) }}">voir le livre</a>
+              </td>
               <td rowspan="{{ [livre.categories|length, livre.auteurs|length, 1]|max }}">{{ livre.titre }}</td>
               <td rowspan="{{ [livre.categories|length, livre.auteurs|length, 1]|max  }}">{{ livre.description }}</td>
               <td rowspan="{{ [livre.categories|length, livre.auteurs|length, 1]|max  }}">{{ livre.isbn }}</td>
               <td rowspan="{{ [livre.categories|length, livre.auteurs|length, 1]|max  }}">{{ livre.annee_apparition }}</td>
               <td rowspan="{{ [livre.categories|length, livre.auteurs|length, 1]|max  }}">{{ livre.image }}</td>
               <td rowspan="{{ [livre.categories|length, livre.auteurs|length, 1]|max  }}">{{ livre.editeur.nom }}</td>
-              <td>{{ livre.categories[0] }}</td>
-              <td>{{ livre.auteurs[0] }}</td>
+
+              <!-- Affiche la première catégorie et le premier auteur -->
+              <td>{{ livre.categories[0].nom if livre.categories else '' }}</td>
+              <td>{{ livre.auteurs[0].nom if livre.auteurs else '' }}</td>
           </tr>
+
+          <!-- Boucle pour afficher les autres catégories et auteurs -->
           {% for i in range(1, [livre.categories|length, livre.auteurs|length]|max) %}
           <tr>
-              <td>{{ livre.categories[i] if i < livre.categories|length else '' }}</td>
-              <td>{{ livre.auteurs[i] if i < livre.auteurs|length else '' }}</td>
+              <td>{{ livre.categories[i].nom if i < livre.categories|length else '' }}</td>
+              <td>{{ livre.auteurs[i].nom if i < livre.auteurs|length else '' }}</td>
           </tr>
           {% endfor %}
       {% endfor %}
   </tbody>
-<!-- ... (autres parties du code HTML) ... -->
-
   </table>
 {% endblock %}
+
 {% block javascript %}
-    
-    <!-- The contents of myscript.js will be loaded inside the script tag -->
+    <!-- Le fichier myscript.js sera chargé ici -->
 {% endblock %}

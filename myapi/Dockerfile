@@ -8,11 +8,9 @@ COPY requirements.txt requirements.txt
 RUN apt-get update
 RUN pip install --upgrade pip
 # installer les dependances à Python
-RUN pip install --no-cache-dir -r requirements.txt && \
-opentelemetry-bootstrap -a install
+RUN pip install --no-cache-dir -r requirements.txt
+# RUN opentelemetry-bootstrap -a install
 
 COPY . .
-
-EXPOSE 8082
 
 CMD python ${APP_NAME}
